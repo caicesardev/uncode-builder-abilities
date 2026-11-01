@@ -71,6 +71,6 @@ final class Write_Policy {
 	}
 
 	public static function is_draft( WP_Post $post ): bool {
-		return in_array( $post->post_status, self::DRAFT_STATUSES, true );
+		return in_array( $post->post_status, self::DRAFT_STATUSES, true ) || Draft_Copies::is_autosave( $post );
 	}
 }

@@ -27,7 +27,7 @@ final class Snapshot_Store {
 			)
 		);
 
-		update_post_meta( $post->ID, self::META_KEY, wp_slash( array_slice( $snapshots, 0, $limit ) ) );
+		update_metadata( 'post', $post->ID, self::META_KEY, wp_slash( array_slice( $snapshots, 0, $limit ) ) );
 	}
 
 	public function latest( int $post_id ): ?array {
@@ -45,7 +45,7 @@ final class Snapshot_Store {
 	}
 
 	private function all( int $post_id ): array {
-		$snapshots = get_post_meta( $post_id, self::META_KEY, true );
+		$snapshots = get_metadata( 'post', $post_id, self::META_KEY, true );
 
 		return is_array( $snapshots ) ? array_values( $snapshots ) : array();
 	}

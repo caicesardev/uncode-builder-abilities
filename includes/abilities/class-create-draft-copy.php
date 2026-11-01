@@ -54,7 +54,7 @@ final class Create_Draft_Copy extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Creates a draft copy of a published page, post or content block so its layout can be changed without touching the live version. With the Yoast Duplicate Post plugin it is a "Rewrite & Republish" copy: a person reviews it and clicks Republish to merge it into the original, which keeps its URL. If the item already has such a copy, that copy is returned instead of creating another. Without that plugin it is an independent draft. Returns `copy_id` (use it as `post_id` with get-page-tree and the edit abilities), `preview_url` and `how_to_apply`. The original is never modified.', 'uncode-builder-abilities' );
+		return __( 'Creates a draft copy of a published page, post or content block so its layout can be changed without touching the live version. By default it is a native WordPress autosave of the item (its unpublished changes, which a person previews and restores from the editor); when the Yoast Duplicate Post plugin is active it is a "Rewrite & Republish" copy instead (a person clicks Republish to merge it). If the item already has a current copy, that copy is returned instead of creating another. Returns `copy_id` (use it as `post_id` with get-page-tree and the edit abilities), the `strategy` used and `how_to_apply`. The original is never modified.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

@@ -2,6 +2,7 @@
 
 namespace Uncode_Builder_Abilities\Abilities;
 
+use Uncode_Builder_Abilities\Draft_Copies;
 use Uncode_Builder_Abilities\Layout_Document;
 use Uncode_Builder_Abilities\Layout_Operations;
 use Uncode_Builder_Abilities\Layout_Writer;
@@ -30,19 +31,19 @@ abstract class Write_Ability extends Ability {
 	abstract protected function edit( Layout_Document $document, WP_Post $post, array $input );
 
 	public function has_permission( $input = null ): bool {
-		$post_id = (int) ( self::input_array( $input )['post_id'] ?? 0 );
-		if ( $post_id <= 0 || ! current_user_can( 'edit_post', $post_id ) ) {
+		$post = get_post( (int) ( self::input_array( $input )['post_id'] ?? 0 ) );
+		if ( ! $post instanceof WP_Post || ! Draft_Copies::is_layout_target( $post ) || ! current_user_can( 'edit_post', Draft_Copies::permission_target_id( $post ) ) ) {
 			return false;
 		}
 
-		return (bool) apply_filters( 'uncode_builder_abilities_can_write_post', true, get_post( $post_id ), $this->qualified_name() );
+		return (bool) apply_filters( 'uncode_builder_abilities_can_write_post', true, $post, $this->qualified_name() );
 	}
 
 	public function execute( $input = null ) {
 		$input = self::input_array( $input );
 		$post  = get_post( (int) ( $input['post_id'] ?? 0 ) );
 
-		if ( ! $post instanceof WP_Post || 'revision' === $post->post_type ) {
+		if ( ! $post instanceof WP_Post || ! Draft_Copies::is_layout_target( $post ) ) {
 			return new WP_Error( 'uncode_builder_post_not_found', 'The post does not exist.', array( 'status' => 404 ) );
 		}
 

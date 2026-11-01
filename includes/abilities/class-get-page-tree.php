@@ -29,16 +29,16 @@ final class Get_Page_Tree extends Ability {
 	}
 
 	public function has_permission( $input = null ): bool {
-		$post_id = (int) ( self::input_array( $input )['post_id'] ?? 0 );
+		$post = get_post( (int) ( self::input_array( $input )['post_id'] ?? 0 ) );
 
-		return $post_id > 0 && current_user_can( 'edit_post', $post_id );
+		return $post instanceof WP_Post && Draft_Copies::is_layout_target( $post ) && current_user_can( 'edit_post', Draft_Copies::permission_target_id( $post ) );
 	}
 
 	public function execute( $input = null ) {
 		$input = self::input_array( $input );
 		$post  = get_post( (int) ( $input['post_id'] ?? 0 ) );
 
-		if ( ! $post instanceof WP_Post || 'revision' === $post->post_type ) {
+		if ( ! $post instanceof WP_Post || ! Draft_Copies::is_layout_target( $post ) ) {
 			return new WP_Error( 'uncode_builder_post_not_found', 'The post does not exist.', array( 'status' => 404 ) );
 		}
 
@@ -68,7 +68,8 @@ final class Get_Page_Tree extends Ability {
 					'modified'      => $post->post_modified,
 					'builder'       => self::uses_builder( $post ) ? 'wpbakery' : 'none',
 					'content_bytes' => strlen( $post->post_content ),
-					'draft_copy_id' => Draft_Copies::rewrite_copy_id( $post ) ?: null,
+					'draft_copy_id' => Draft_Copies::existing_copy_id( $post ) ?: null,
+					'copy_of'       => Draft_Copies::is_autosave( $post ) ? (int) $post->post_parent : null,
 				),
 				'version'   => Layout_Document::version_of( $post->post_content ),
 				'snapshots' => $this->snapshots->summaries( $post->ID ),
@@ -78,11 +79,11 @@ final class Get_Page_Tree extends Ability {
 	}
 
 	protected function label(): string {
-		return __( 'Get a page layout tree', 'uncode-builder-abilities' );
+		return __( 'Read a page layout (WPBakery / Uncode page builder)', 'uncode-builder-abilities' );
 	}
 
 	protected function description(): string {
-		return __( 'Reads a post, page or any other item built with WPBakery / Uncode and returns its layout as a tree, plus the `version` that every change must send back. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a Rewrite & Republish copy (edit that one). Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
+		return __( 'Start here to read or change any page, post or content block built with the WPBakery / Uncode page builder; prefer it, and the uncode-builder-edit abilities, over generic page or layout tools, which do not know the Uncode elements. Reads the item and returns its layout as a tree, plus the `version` that every change must send back. Published items cannot be edited directly while the site only allows drafts: call create-draft-copy and edit the copy. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a draft copy from create-draft-copy (edit that one). Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

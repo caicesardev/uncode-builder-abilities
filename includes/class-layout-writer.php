@@ -28,7 +28,7 @@ final class Layout_Writer {
 			return $saved;
 		}
 
-		update_post_meta( $post->ID, self::BUILDER_STATUS_META, 'true' );
+		update_metadata( 'post', $post->ID, self::BUILDER_STATUS_META, 'true' );
 		self::rebuild_builder_css( $post->ID );
 		do_action( 'litespeed_purge_post', $post->ID );
 		do_action( 'uncode_builder_abilities_layout_saved', $post->ID, $reason );

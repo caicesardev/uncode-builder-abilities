@@ -26,7 +26,7 @@ WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBa
 | `uncode-builder-edit/move-element` | edit | Move an element to another container. |
 | `uncode-builder-edit/remove-element` | edit | Remove an element (`expect_tag` required). |
 | `uncode-builder-edit/restore-snapshot` | edit | Undo the last change. |
-| `uncode-builder-edit/create-draft-copy` | edit | Draft copy of a published item to work on safely. With Yoast Duplicate Post it is a Rewrite & Republish copy: a person reviews it and clicks Republish. The original is never modified. |
+| `uncode-builder-edit/create-draft-copy` | edit | Draft copy of a published item to work on safely; the original is never modified. By default it is a native WordPress autosave (a person previews it and restores it from the editor). With Yoast Duplicate Post active it is a Rewrite & Republish copy (a person clicks Republish). The `uncode_builder_abilities_draft_copy_strategy` filter picks one. |
 
 Reads and edits use separate namespaces, so a transport with per-namespace scopes can grant read-only access.
 
@@ -43,7 +43,8 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 
 1. Install and activate this plugin.
 2. In Easy MCP AI, enable the abilities you want to publish. Abilities added by a new version of this plugin must be enabled there too, or the transport does not publish them.
-3. Connect the MCP client with OAuth and grant the `mcp:abilities:uncode_builder` scope (read) and, to edit, `mcp:abilities:uncode_builder_edit`.
+3. Disable Easy MCP AI's own page-builder tools (`wp_get_page_layout`, `wp_update_page_layout`, `wp_list_layout_elements`) so agents do not pick them over these abilities.
+4. Connect the MCP client with OAuth and grant the `mcp:abilities:uncode_builder` scope (read) and, to edit, `mcp:abilities:uncode_builder_edit`.
 
 ## Extending
 
@@ -60,6 +61,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_write_allowed`, `uncode_builder_abilities_can_write_post` | Restrict which items can be edited. |
 | `uncode_builder_abilities_catalog_capability` | Capability for the catalogue abilities (default `edit_posts`). |
 | `uncode_builder_abilities_show_in_rest` | Expose an ability in the core REST API. |
+| `uncode_builder_abilities_draft_copy_strategy` | `autosave` (native, default) or `rewrite_and_republish` (Yoast Duplicate Post) for create-draft-copy. |
 
 ## Tests
 
