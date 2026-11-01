@@ -61,7 +61,9 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_param_kinds` | Map custom parameter types to normalized kinds. |
 | `uncode_builder_abilities_normalized_param` | Enrich a normalized parameter. |
 | `uncode_builder_abilities_implicit_params` | Parameters a theme stores but does not declare in `vc_map`. |
-| `uncode_builder_abilities_nesting_rules`, `uncode_builder_abilities_root_tags` | Nesting rules. |
+| `uncode_builder_abilities_nesting_rules`, `uncode_builder_abilities_root_tags` | Nesting rules (`only`, `except`, and `structural` children the builder places itself). |
+| `uncode_builder_abilities_element_advice` | Advice returned with every edit for the elements it touched, such as a button whose text cannot be read. |
+| `uncode_builder_abilities_preview_line_classes` | Classes that render as separate lines, so render-preview keeps their words apart. |
 | `uncode_builder_abilities_generate_id` | Generate ids for auto-id parameter types. |
 | `uncode_builder_abilities_token_sources`, `uncode_builder_abilities_design_token` | Declare and resolve design tokens. |
 | `uncode_builder_abilities_abilities` | Add or remove abilities. |

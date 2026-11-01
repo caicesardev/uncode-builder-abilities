@@ -4,7 +4,7 @@ Tags: wpbakery, uncode, page builder, ai, mcp
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.10.2
+Stable tag: 0.10.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,10 @@ Not in the default drafts-only mode. A person applies draft copies by restoring 
 No. It keeps its own snapshots (one per item by default, configurable) for `restore-snapshot`.
 
 == Changelog ==
+
+= 0.10.3 =
+* Edits return `advice` about the elements they touched. With Uncode, buttons whose text cannot be read (white text on a light colour) or whose outline is ignored by the theme's button hover are reported.
+* render-preview ignores scripts and styles, and no longer joins words across line breaks, blocks or Uncode heading lines.
 
 = 0.10.2 =
 * Inner rows (vc_row_inner) can be inserted inside columns again.

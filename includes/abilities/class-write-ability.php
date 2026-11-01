@@ -3,6 +3,7 @@
 namespace Uncode_Builder_Abilities\Abilities;
 
 use Uncode_Builder_Abilities\Draft_Copies;
+use Uncode_Builder_Abilities\Element_Advisor;
 use Uncode_Builder_Abilities\Layout_Document;
 use Uncode_Builder_Abilities\Layout_Operations;
 use Uncode_Builder_Abilities\Layout_Writer;
@@ -220,9 +221,11 @@ abstract class Write_Ability extends Ability {
 		$after    = $this->open( $edit['content'] );
 		$options  = self::option_changes( $post->ID, $edit['meta'] ?? array() );
 		$elements = array();
+		$focused  = array();
 		foreach ( $edit['focus'] as $offset ) {
 			$node = $after->element_starting_at( $offset );
 			if ( null !== $node ) {
+				$focused[]  = $node;
 				$elements[] = array_filter(
 					array(
 						'path' => $node['path'],
@@ -242,6 +245,7 @@ abstract class Write_Ability extends Ability {
 				'generated_ids' => $edit['generated_ids'] ?? array(),
 				'snippet'       => $edit['snippet'] ?? null,
 				'warnings'      => $edit['warnings'] ?? array(),
+				'advice'        => Element_Advisor::advice_for( $focused ),
 			),
 			static fn( $value ) => false === $value || ( null !== $value && array() !== $value )
 		);
