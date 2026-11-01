@@ -6,8 +6,11 @@ use Uncode_Builder_Abilities\Abilities\Ability;
 use Uncode_Builder_Abilities\Abilities\Get_Design_Tokens;
 use Uncode_Builder_Abilities\Abilities\Get_Element_Schema;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Tree;
+use Uncode_Builder_Abilities\Abilities\Get_Template;
 use Uncode_Builder_Abilities\Abilities\Insert_Elements;
+use Uncode_Builder_Abilities\Abilities\Insert_Template;
 use Uncode_Builder_Abilities\Abilities\List_Elements;
+use Uncode_Builder_Abilities\Abilities\List_Templates;
 use Uncode_Builder_Abilities\Abilities\Move_Element;
 use Uncode_Builder_Abilities\Abilities\Remove_Element;
 use Uncode_Builder_Abilities\Abilities\Restore_Snapshot;
@@ -54,17 +57,21 @@ final class Plugin {
 		$catalog    = new Element_Catalog( new Param_Normalizer() );
 		$parser     = new Shortcode_Parser( $catalog, new Attribute_Decoder() );
 		$nesting    = new Nesting_Rules( $catalog );
-		$operations = new Layout_Operations( $catalog, $nesting, new Element_Composer( $catalog, $nesting, new Attribute_Encoder() ) );
+		$operations = new Layout_Operations( $catalog, $nesting, new Element_Composer( $catalog, $nesting, new Attribute_Encoder() ), $parser );
 		$snapshots  = new Snapshot_Store();
 		$writer     = new Layout_Writer( $snapshots );
 		$tokens     = new Design_Tokens( $catalog );
+		$templates  = new Template_Library();
 
 		$abilities = array(
 			new List_Elements( $catalog ),
 			new Get_Element_Schema( $catalog, new Schema_Compactor( $tokens ) ),
 			new Get_Design_Tokens( $tokens ),
 			new Get_Page_Tree( $parser, $snapshots ),
+			new List_Templates( $templates ),
+			new Get_Template( $templates, $parser ),
 			new Insert_Elements( $parser, $operations, $writer ),
+			new Insert_Template( $parser, $operations, $writer, $templates ),
 			new Update_Element( $parser, $operations, $writer ),
 			new Move_Element( $parser, $operations, $writer ),
 			new Remove_Element( $parser, $operations, $writer ),

@@ -14,10 +14,48 @@ final class Layout_Operations {
 
 	private Element_Composer $composer;
 
-	public function __construct( Element_Catalog $catalog, Nesting_Rules $nesting, Element_Composer $composer ) {
+	private Shortcode_Parser $parser;
+
+	public function __construct( Element_Catalog $catalog, Nesting_Rules $nesting, Element_Composer $composer, Shortcode_Parser $parser ) {
 		$this->catalog  = $catalog;
 		$this->nesting  = $nesting;
 		$this->composer = $composer;
+		$this->parser   = $parser;
+	}
+
+	public function insert_source( Layout_Document $document, string $parent_path, ?int $index, string $source ) {
+		$parent_tag = $this->container_tag( $document, $parent_path );
+		if ( is_wp_error( $parent_tag ) ) {
+			return $parent_tag;
+		}
+
+		$tree   = $this->parser->parse( $source, false )['tree'];
+		$errors = array();
+		foreach ( $tree as $node ) {
+			$violation = isset( $node['tag'] ) ? $this->nesting->violation( $parent_tag, $node['tag'] ) : 'The template has loose text outside its elements.';
+			if ( null !== $violation ) {
+				$errors[] = array(
+					'at'      => 'template.' . $node['path'],
+					'message' => $violation,
+				);
+			}
+		}
+		if ( array() !== $errors ) {
+			return self::invalid( $errors );
+		}
+
+		$prepared = $this->composer->assign_ids( $source, $tree, $document->used_ids() );
+		$offset   = $document->insertion_offset( $parent_path, $index );
+		$focus    = array();
+		foreach ( $this->parser->parse( $prepared['content'], false )['tree'] as $node ) {
+			$focus[] = $offset + $node[ Shortcode_Parser::SOURCE_KEY ]['start'];
+		}
+
+		return array(
+			'content'       => $document->splice( $offset, 0, $prepared['content'] ),
+			'focus'         => $focus,
+			'generated_ids' => $prepared['generated_ids'],
+		);
 	}
 
 	public function insert( Layout_Document $document, string $parent_path, ?int $index, array $specs ) {

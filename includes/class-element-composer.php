@@ -75,6 +75,66 @@ final class Element_Composer {
 		);
 	}
 
+	public function assign_ids( string $source, array $tree, array $used_ids ): array {
+		$this->reset( $used_ids );
+
+		$replacements = array();
+		foreach ( self::elements_in( $tree ) as $node ) {
+			if ( ! $this->catalog->has( $node['tag'] ) ) {
+				continue;
+			}
+
+			$location = $node[ Shortcode_Parser::SOURCE_KEY ];
+			$original = Shortcode_Parser::raw_attributes( $location['attributes_text'] );
+			$assigned = $this->with_generated_ids( $node['tag'], $this->without_taken_ids( $node['tag'], $original ), $node['path'] );
+
+			if ( $assigned !== $original ) {
+				$replacements[] = array(
+					'start'  => $location['start'],
+					'length' => ( $location['inner_start'] ?? $location['end'] ) - $location['start'],
+					'tag'    => Shortcode_Serializer::open_tag( $node['tag'], $assigned ),
+				);
+			}
+		}
+
+		foreach ( array_reverse( $replacements ) as $replacement ) {
+			$source = substr_replace( $source, $replacement['tag'], $replacement['start'], $replacement['length'] );
+		}
+
+		return array(
+			'content'       => $source,
+			'generated_ids' => $this->generated_ids,
+		);
+	}
+
+	private function without_taken_ids( string $tag, array $attributes ): array {
+		foreach ( $this->catalog->params_by_name( $tag ) as $name => $param ) {
+			if ( self::AUTO_ID_KIND !== $param['kind'] || ! isset( $attributes[ $name ] ) || '' === $attributes[ $name ] ) {
+				continue;
+			}
+
+			if ( isset( $this->used_ids[ $attributes[ $name ] ] ) ) {
+				unset( $attributes[ $name ] );
+			} else {
+				$this->used_ids[ $attributes[ $name ] ] = true;
+			}
+		}
+
+		return $attributes;
+	}
+
+	private static function elements_in( array $nodes ): array {
+		$elements = array();
+		foreach ( $nodes as $node ) {
+			if ( isset( $node['tag'] ) ) {
+				$elements[] = $node;
+			}
+			$elements = array_merge( $elements, self::elements_in( $node['children'] ?? array() ) );
+		}
+
+		return $elements;
+	}
+
 	private function reset( array $used_ids ): void {
 		$this->errors        = array();
 		$this->generated_ids = array();

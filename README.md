@@ -18,7 +18,10 @@ WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBa
 | `uncode-builder/get-element-schema` | read | Index of every parameter by group, plus the details of one group (default "General") or of the parameters named in `params`. Compact: long option lists point to design tokens. |
 | `uncode-builder/get-page-tree` | read | Layout of a post as a tree, with paths, stable ids, decoded values and the `version` that edits must send back. |
 | `uncode-builder/list-content-blocks` | read | Uncode content blocks (only when the theme registers them). |
+| `uncode-builder/list-templates` | read | Template library: WPBakery default templates (with Uncode, its 900 wireframes) and user-saved templates. Categories only unless `category` or `search` is sent. |
+| `uncode-builder/get-template` | read | One template as a layout tree, to inspect it before inserting. |
 | `uncode-builder-edit/insert-elements` | edit | Insert elements with their children. |
+| `uncode-builder-edit/insert-template` | edit | Insert a template as designed, with fresh unique ids; then adapt it with `update-element`. |
 | `uncode-builder-edit/update-element` | edit | Change parameters or content of one element. |
 | `uncode-builder-edit/move-element` | edit | Move an element to another container. |
 | `uncode-builder-edit/remove-element` | edit | Remove an element (`expect_tag` required). |
@@ -59,7 +62,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 
 ## Tests
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
 
 ## License
 
