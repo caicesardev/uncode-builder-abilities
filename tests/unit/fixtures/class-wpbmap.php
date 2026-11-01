@@ -117,6 +117,18 @@ final class WPBMap {
 					array( 'type' => 'textfield', 'param_name' => 'empty_h', 'heading' => 'Height' ),
 				),
 			),
+			'vc_row_inner'      => array(
+				'name'            => 'Inner Row',
+				'is_container'    => true,
+				'content_element' => false,
+				'params'          => array(),
+			),
+			'vc_column_inner'   => array(
+				'name'            => 'Inner Column',
+				'is_container'    => true,
+				'content_element' => false,
+				'params'          => array(),
+			),
 			'vc_tta_tabs'       => array(
 				'name'         => 'Tabs',
 				'is_container' => true,

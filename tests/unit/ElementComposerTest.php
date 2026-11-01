@@ -44,6 +44,25 @@ final class ElementComposerTest extends Test_Case {
 		$this->assertSame( '[vc_row][vc_column][vc_custom_heading heading_semantic="h1"]Hola[/vc_custom_heading][vc_empty_space][/vc_column][/vc_row]', $composed['shortcodes'][0] );
 	}
 
+	public function test_nests_inner_rows_in_columns_but_not_deeper(): void {
+		$inner_row = array(
+			'tag'      => 'vc_row_inner',
+			'children' => array(
+				array(
+					'tag'      => 'vc_column_inner',
+					'children' => array( array( 'tag' => 'vc_empty_space' ) ),
+				),
+			),
+		);
+
+		$this->assertSame( array(), $this->composer()->compose( array( self::row( array( $inner_row ) ) ), null, array() )['errors'] );
+
+		$nested                            = $inner_row;
+		$nested['children'][0]['children'] = array( $inner_row );
+
+		$this->assertStringContainsString( 'cannot hold "vc_row_inner"', self::messages( $this->composer()->compose( array( self::row( array( $nested ) ) ), null, array() ) ) );
+	}
+
 	public function test_reports_every_problem_with_its_location(): void {
 		$composed = $this->composer()->compose(
 			array(

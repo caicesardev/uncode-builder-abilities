@@ -12,7 +12,10 @@ final class Nesting_Rules {
 		'vc_section'      => array( 'only' => array( 'vc_row' ) ),
 		'vc_row'          => array( 'only' => array( 'vc_column' ) ),
 		'vc_row_inner'    => array( 'only' => array( 'vc_column_inner' ) ),
-		'vc_column'       => array( 'except' => array( 'vc_section', 'vc_row', 'vc_column', 'vc_column_inner' ) ),
+		'vc_column'       => array(
+			'except'     => array( 'vc_section', 'vc_row', 'vc_column', 'vc_column_inner' ),
+			'structural' => array( 'vc_row_inner' ),
+		),
 		'vc_column_inner' => array( 'except' => array( 'vc_section', 'vc_row', 'vc_row_inner', 'vc_column', 'vc_column_inner' ) ),
 	);
 
@@ -47,7 +50,7 @@ final class Nesting_Rules {
 			return sprintf( '"%s" cannot go inside "%s"%s.', $child_tag, $parent_tag, self::describe( $parents_rule ) );
 		}
 
-		if ( ! $this->catalog->is_insertable( $child_tag ) && ! in_array( $child_tag, $children_rule['only'] ?? array(), true ) ) {
+		if ( ! $this->catalog->is_insertable( $child_tag ) && ! in_array( $child_tag, self::structural_children( $children_rule ), true ) ) {
 			return sprintf( '"%s" cannot be inserted inside "%s".', $child_tag, $parent_tag );
 		}
 
@@ -72,6 +75,10 @@ final class Nesting_Rules {
 		}
 
 		return empty( $rule['except'] ) || ! in_array( $tag, $rule['except'], true );
+	}
+
+	private static function structural_children( array $rule ): array {
+		return array_merge( $rule['only'] ?? array(), $rule['structural'] ?? array() );
 	}
 
 	private static function describe( array $rule ): string {
