@@ -47,15 +47,22 @@ final class Design_Tokens {
 	}
 
 	public static function signature( array $options ): string {
-		$values = array_values( array_filter( array_map( 'strval', array_column( $options, 'value' ) ), 'strlen' ) );
+		$values = array_unique( array_filter( array_map( 'strval', array_column( $options, 'value' ) ), 'strlen' ) );
 		sort( $values );
 
 		return implode( "\n", $values );
 	}
 
 	private function source_options( array $source ): array {
-		$param = $this->catalog->params_by_name( (string) ( $source['tag'] ?? '' ) )[ (string) ( $source['param'] ?? '' ) ] ?? null;
+		$param   = $this->catalog->params_by_name( (string) ( $source['tag'] ?? '' ) )[ (string) ( $source['param'] ?? '' ) ] ?? null;
+		$options = array();
 
-		return array_values( array_filter( $param['options'] ?? array(), static fn( array $option ) => '' !== $option['value'] ) );
+		foreach ( $param['options'] ?? array() as $option ) {
+			if ( '' !== $option['value'] && ! isset( $options[ $option['value'] ] ) ) {
+				$options[ $option['value'] ] = $option;
+			}
+		}
+
+		return array_values( $options );
 	}
 }

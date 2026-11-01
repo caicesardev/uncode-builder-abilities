@@ -15,7 +15,7 @@ WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBa
 |---|---|---|
 | `uncode-builder/get-design-tokens` | read | Colour palette, font families, sizes, weights, line heights and letter spacings, with the value each one resolves to. |
 | `uncode-builder/list-elements` | read | Elements registered in the builder, with nesting rules. |
-| `uncode-builder/get-element-schema` | read | Parameters of one element, one group at a time (`group: "*"` for all). Compact by default: long option lists point to design tokens. |
+| `uncode-builder/get-element-schema` | read | Index of every parameter by group, plus the details of one group (default "General") or of the parameters named in `params`. Compact: long option lists point to design tokens. |
 | `uncode-builder/get-page-tree` | read | Layout of a post as a tree, with paths, stable ids, decoded values and the `version` that edits must send back. |
 | `uncode-builder/list-content-blocks` | read | Uncode content blocks (only when the theme registers them). |
 | `uncode-builder-edit/insert-elements` | edit | Insert elements with their children. |

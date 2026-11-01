@@ -35,6 +35,21 @@ foreach ( array( 'vc_custom_heading', 'vc_row', 'vc_column', 'uncode_button' ) a
 	uba_check( "compacto $tag", strlen( wp_json_encode( $compact ) ) < strlen( wp_json_encode( $full ) ), uba_size( $full ) . ' -> ' . uba_size( $compact ) . ' | solo General: ' . uba_size( $general ) . ' | refs ' . wp_json_encode( $refs ) );
 }
 
+$picked = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => 'vc_row', 'params' => array( 'back_color', 'top_padding', 'no_existe' ) ) );
+$picked_names = array_column( $picked['params'], 'name' );
+sort( $picked_names );
+uba_check( 'params concretos de varios grupos', array( 'back_color', 'top_padding' ) === $picked_names &&array( 'no_existe' ) === ( $picked['unknown_params'] ?? null ), uba_size( $picked ) . ' ' . wp_json_encode( array_column( $picked['params'], 'group', 'name' ) ) );
+uba_check( 'índice de grupos con nombres', is_array( $picked['groups']['Style'] ?? null ) && in_array( 'back_color', $picked['groups']['Style'], true ), count( $picked['groups'] ) . ' grupos' );
+
+$wrong_group = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => 'vc_row', 'group' => 'NoExiste' ) );
+uba_check( 'grupo inexistente explica los grupos', is_wp_error( $wrong_group ), is_wp_error( $wrong_group ) ? $wrong_group->get_error_message() : '' );
+
+$style = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => 'vc_row', 'group' => 'style' ) );
+uba_check( 'grupo sin distinguir mayúsculas', 'Style' === ( $style['returned_group'] ?? '' ), uba_size( $style ) );
+
+$color_values = array_column( $tokens['sets']['colors'], 'value' );
+uba_check( 'tokens sin valores duplicados', count( $color_values ) === count( array_unique( $color_values ) ), count( $color_values ) . ' colores' );
+
 $heading = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => 'vc_custom_heading', 'group' => 'General' ) );
 foreach ( $heading['params'] as $param ) {
 	if ( in_array( $param['name'], array( 'text_color', 'text_size', 'text_font', 'heading_semantic' ), true ) ) {

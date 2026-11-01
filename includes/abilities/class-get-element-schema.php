@@ -32,10 +32,10 @@ final class Get_Element_Schema extends Ability {
 	}
 
 	public function execute( $input = null ) {
-		$input     = self::input_array( $input );
-		$tag       = (string) ( $input['tag'] ?? '' );
-		$requested = (string) ( $input['group'] ?? '' );
-		$schema    = $this->catalog->schema( $tag, self::ALL_GROUPS === $requested ? '' : $requested, ! empty( $input['include_descriptions'] ) );
+		$input   = self::input_array( $input );
+		$tag     = (string) ( $input['tag'] ?? '' );
+		$compact = (bool) ( $input['compact'] ?? true );
+		$schema  = $this->catalog->schema( $tag, '', ! empty( $input['include_descriptions'] ) );
 
 		if ( null === $schema ) {
 			return new WP_Error(
@@ -45,20 +45,80 @@ final class Get_Element_Schema extends Ability {
 			);
 		}
 
-		if ( '' === $requested ) {
-			$schema = self::only_default_group( $schema );
+		$index     = self::group_index( $schema['params'], $compact );
+		$selection = self::select( $schema['params'], $index, $input );
+		if ( is_wp_error( $selection ) ) {
+			return $selection;
 		}
 
-		return ( $input['compact'] ?? true ) ? $this->compactor->compact( $schema, self::ALL_GROUPS !== $requested ) : $schema;
+		$schema['groups'] = $index;
+		$schema['params'] = $selection['params'];
+		$schema           = array_merge( $schema, $selection['meta'] );
+
+		return $compact ? $this->compactor->compact( $schema, $selection['single_group'] ) : $schema;
 	}
 
-	private static function only_default_group( array $schema ): array {
-		$group = isset( $schema['groups'][ self::DEFAULT_GROUP ] ) ? self::DEFAULT_GROUP : (string) array_key_first( $schema['groups'] );
+	private static function group_index( array $params, bool $compact ): array {
+		$index = array();
+		foreach ( $params as $param ) {
+			if ( $compact && in_array( $param['kind'], Schema_Compactor::OMITTED_KINDS, true ) ) {
+				continue;
+			}
+			$index[ $param['group'] ][] = $param['name'];
+		}
 
-		$schema['returned_group'] = $group;
-		$schema['params']         = array_values( array_filter( $schema['params'], static fn( array $param ) => $param['group'] === $group ) );
+		return $index;
+	}
 
-		return $schema;
+	private static function select( array $params, array $index, array $input ) {
+		$names = array_values( array_filter( array_map( 'strval', (array) ( $input['params'] ?? array() ) ) ) );
+		if ( array() !== $names ) {
+			$found = array_values( array_filter( $params, static fn( array $param ) => in_array( $param['name'], $names, true ) ) );
+
+			return array(
+				'params'       => $found,
+				'single_group' => false,
+				'meta'         => array_filter( array( 'unknown_params' => array_values( array_diff( $names, array_column( $found, 'name' ) ) ) ) ),
+			);
+		}
+
+		$requested = (string) ( $input['group'] ?? '' );
+		if ( self::ALL_GROUPS === $requested ) {
+			return array(
+				'params'       => $params,
+				'single_group' => false,
+				'meta'         => array(),
+			);
+		}
+
+		$group = '' === $requested ? self::default_group( $index ) : self::matching_group( $index, $requested );
+		if ( null === $group ) {
+			return new WP_Error(
+				'uncode_builder_unknown_group',
+				sprintf( 'There is no group "%s". Groups: %s.', $requested, implode( ', ', array_keys( $index ) ) ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return array(
+			'params'       => array_values( array_filter( $params, static fn( array $param ) => $param['group'] === $group ) ),
+			'single_group' => true,
+			'meta'         => array( 'returned_group' => $group ),
+		);
+	}
+
+	private static function default_group( array $index ): string {
+		return isset( $index[ self::DEFAULT_GROUP ] ) ? self::DEFAULT_GROUP : (string) array_key_first( $index );
+	}
+
+	private static function matching_group( array $index, string $requested ): ?string {
+		foreach ( array_keys( $index ) as $group ) {
+			if ( 0 === strcasecmp( (string) $group, $requested ) ) {
+				return (string) $group;
+			}
+		}
+
+		return null;
 	}
 
 	protected function label(): string {
@@ -66,7 +126,7 @@ final class Get_Element_Schema extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Returns the parameters of one WPBakery / Uncode element: name, normalized `kind`, label, default, allowed `options`, numeric bounds, `visible_when` (the parameter only applies when another one has those values) and `active_when` (Uncode colour parameters that only apply in one colour mode). Elements can have 200+ parameters, so the reply lists every group in `groups` (with its parameter count) but only returns the parameters of one: "General" unless you send `group` (for example "Style", "Responsive" or "Animation"); `group: "*"` returns all of them and can be very large. The reply is compact: long option lists that match a design token set come as `options_ref: "design_tokens.<set>"` (read them once with get-design-tokens), lists repeated inside the reply come as `options_ref: "params.<name>"` (same options as that parameter), the raw builder `type` is only kept when `kind` is unknown, and editor-only parameters are left out. `compact: false` returns everything; `include_descriptions` adds the help text.', 'uncode-builder-abilities' );
+		return __( 'Returns the parameters of one WPBakery / Uncode element: name, normalized `kind`, label, default, allowed `options`, numeric bounds, `visible_when` (the parameter only applies when another one has those values) and `active_when` (Uncode colour parameters that only apply in one colour mode). Elements can have 200+ parameters, so the reply always includes `groups`, an index of every parameter name by group, and details only for part of them: the "General" group by default, another group with `group` (for example "Style", "Responsive" or "Animation"), or exactly the parameters you name in `params` (any group) — use the index to pick them instead of asking for everything. The reply is compact: long option lists that match a design token set come as `options_ref: "design_tokens.<set>"` (read them once with get-design-tokens), lists repeated inside the reply come as `options_ref: "params.<name>"` (same options as that parameter), the raw builder `type` is only kept when `kind` is unknown, and editor-only parameters are left out. `include_descriptions` adds the help text.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
@@ -79,7 +139,12 @@ final class Get_Element_Schema extends Ability {
 				),
 				'group'                => array(
 					'type'        => 'string',
-					'description' => 'Group whose parameters to return, as listed in `groups`. Default "General"; "*" for every group.',
+					'description' => 'Group whose parameters to return, as listed in `groups`. Default "General".',
+				),
+				'params'               => array(
+					'type'        => 'array',
+					'items'       => array( 'type' => 'string' ),
+					'description' => 'Exact parameter names to return, from any group (takes precedence over `group`).',
 				),
 				'compact'              => array(
 					'type'    => 'boolean',
