@@ -4,7 +4,7 @@ Tags: wpbakery, uncode, page builder, ai, mcp
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.10.0
+Stable tag: 0.10.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,10 @@ Not in the default drafts-only mode. A person applies draft copies by restoring 
 No. It keeps its own snapshots (one per item by default, configurable) for `restore-snapshot`.
 
 == Changelog ==
+
+= 0.10.1 =
+* Inserting at the top of a page (path "0") returns the new element's path again, and render-preview keeps a path "0".
+* Integration suites take the test page from UBA_TEST_PAGE_ID; more unit tests for layout operations and previews.
 
 = 0.10.0 =
 * Settings page (Settings → Uncode Builder Abilities) with write policy, snapshots kept per item, draft copy strategy and a status overview.

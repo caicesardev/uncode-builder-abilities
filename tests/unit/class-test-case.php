@@ -36,6 +36,8 @@ abstract class Test_Case extends PHPUnit_Test_Case {
 				'safecss_filter_attr'  => static fn( $css ) => preg_match( self::SAFE_CSS_PROPERTIES, (string) $css ) ? (string) $css : '',
 				'get_post_type'        => static fn( $id ) => in_array( (int) $id, self::ATTACHMENT_IDS, true ) ? 'attachment' : false,
 				'wp_generate_password' => static fn( $length ) => str_repeat( 'a', (int) $length ),
+				'is_wp_error'          => static fn( $thing ) => $thing instanceof \WP_Error,
+				'wp_parse_url'         => static fn( $url, $component = -1 ) => parse_url( $url, $component ),
 			)
 		);
 	}

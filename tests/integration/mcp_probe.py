@@ -1,10 +1,11 @@
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
 
-ENDPOINT = "https://caicesardev.com/wp-json/easy-mcp-ai/v1/mcp"
-DRAFT_PAGE_ID = 179791
+ENDPOINT = os.environ["UBA_MCP_ENDPOINT"]
+DRAFT_PAGE_ID = int(os.environ["UBA_TEST_PAGE_ID"])
 
 
 class McpClient:

@@ -60,7 +60,8 @@ final class Render_Preview extends Ability {
 				array(
 					'post_id' => $post->ID,
 					'path'    => Layout_Document::ROOT_PATH === $path ? null : $path,
-				)
+				),
+				static fn( $value ) => null !== $value
 			),
 			self::how_to_view( $post, $context ),
 			$this->preview->analyze( $html )
