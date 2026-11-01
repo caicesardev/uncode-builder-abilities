@@ -14,7 +14,7 @@ jobs:
     env:
       SLUG: uncode-builder-abilities
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check that the tag matches the plugin version
         run: |
