@@ -74,7 +74,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 
 ## Tests
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
 
 ## License
 

@@ -39,9 +39,13 @@ final class Get_Page_Options extends Ability {
 		$sections = $this->options->sections();
 		$names    = array_values( array_filter( array_map( 'strval', (array) ( $input['fields'] ?? array() ) ) ) );
 		$section  = (string) ( $input['section'] ?? '' );
+		$search   = trim( (string) ( $input['search'] ?? '' ) );
 
 		if ( array() !== $names ) {
 			$fields = array_values( array_filter( array_map( array( $this->options, 'field' ), $names ) ) );
+		} elseif ( '' !== $search ) {
+			$fields  = array_values( array_filter( $this->options->fields(), static fn( array $field ) => self::matches( $field, $search ) ) );
+			$section = '';
 		} else {
 			$section = '' === $section ? (string) array_key_first( $sections ) : self::matching_section( $sections, $section );
 			if ( '' === $section ) {
@@ -56,12 +60,23 @@ final class Get_Page_Options extends Ability {
 				'version'          => Layout_Document::version_of( $post->post_content ),
 				'sections'         => $sections,
 				'values'           => (object) $this->options->stored_values( Draft_Copies::permission_target_id( $post ) ),
-				'returned_section' => array() === $names ? $section : null,
+				'returned_section' => '' === $section || array() !== $names ? null : $section,
 				'fields'           => $fields,
 				'unknown_fields'   => array_values( array_diff( $names, array_column( $fields, 'name' ) ) ),
 			),
 			static fn( $value ) => null !== $value && array() !== $value
 		);
+	}
+
+	private static function matches( array $field, string $search ): bool {
+		$haystack = implode( ' ', array( str_replace( '_', ' ', $field['name'] ), $field['label'], $field['section'] ) );
+		foreach ( preg_split( '/\s+/', $search ) as $word ) {
+			if ( false === stripos( $haystack, $word ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static function matching_section( array $sections, string $requested ): string {
@@ -79,7 +94,7 @@ final class Get_Page_Options extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Reads the per-page settings of the theme that live outside the layout (with Uncode: header type and size, menu transparency, page width, content and footer blocks, sidebar, scroll effects…). These are settings of this item only, not the global theme options. The reply lists every option name by section in `sections`, the values stored for this item in `values` (missing ones inherit the theme defaults), and the definition of one section (the first by default, or `section`) or of the options named in `fields`: kind, allowed `options`, `default` and `visible_when` (the option only applies when other options have those values). Change them with update-page-options using the same `version`. For an autosave copy the values shown are those of the published item.', 'uncode-builder-abilities' );
+		return __( 'Reads the per-page settings of the theme that live outside the layout (with Uncode: header type and size, menu transparency, page width, content and footer blocks, sidebar, scroll effects…). These are settings of this item only, not the global theme options. The reply lists every option name by section in `sections`, the values stored for this item in `values` (missing ones inherit the theme defaults), and the definition of one section (the first by default, or `section`), of the options named in `fields`, or of those whose name, label or section contain every word of `search` (for example "menu transparency" or "width"): kind, allowed `options`, `default` and `visible_when` (the option only applies when other options have those values). Change them with update-page-options using the same `version`. For an autosave copy the values shown are those of the published item.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
@@ -98,6 +113,10 @@ final class Get_Page_Options extends Ability {
 					'type'        => 'array',
 					'items'       => array( 'type' => 'string' ),
 					'description' => 'Exact option names to describe, from any section.',
+				),
+				'search'  => array(
+					'type'        => 'string',
+					'description' => 'Words to look for in option names, labels and sections.',
 				),
 			),
 			'required'             => array( 'post_id' ),

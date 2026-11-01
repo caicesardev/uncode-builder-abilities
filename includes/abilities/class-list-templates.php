@@ -71,7 +71,7 @@ final class List_Templates extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Lists ready-made sections from the page builder template library: WPBakery default templates (with Uncode, its 900+ wireframes: headers, contents, call to actions, pricing tables, team members, footers…) and templates saved by the site users. Without filters it returns only the categories and their counts; send `category` and/or `search` (matches name and category) to get templates with their `id`, a thumbnail `image` and size. Read one with get-template and insert it with insert-template, then adapt its texts and images with update-element. Starting from a template gives better designed sections than composing them element by element.', 'uncode-builder-abilities' );
+		return __( 'Lists ready-made sections from the page builder template library: WPBakery default templates (with Uncode, its 900+ wireframes: headers, contents, call to actions, pricing tables, team members, footers…) and templates saved by the site users. Without filters it returns only the categories and their counts; send `category` and/or `search` (matches name and category, and understands common words such as hero, cta, testimonials, team, faq, pricing, features or contact) to get templates with their `id`, a thumbnail `image` and size. Read one with get-template and insert it with insert-template, then adapt its texts and images with update-element. Starting from a template gives better designed sections than composing them element by element.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

@@ -18,6 +18,24 @@ final class Template_Library {
 
 	const CONTENT_BLOCK_CLASS = 'for-content-blocks';
 
+	const SEARCH_ALIASES = array(
+		'hero'         => 'header',
+		'banner'       => 'header',
+		'cta'          => 'call to action',
+		'testimonial'  => 'quote',
+		'review'       => 'quote',
+		'team'         => 'team member',
+		'faq'          => 'accordion',
+		'prices'       => 'pricing',
+		'plans'        => 'pricing',
+		'features'     => 'icon',
+		'services'     => 'icon',
+		'contact'      => 'form',
+		'stats'        => 'counter',
+		'portfolio'    => 'portfolio',
+		'logos'        => 'carousel',
+	);
+
 	private ?array $templates = null;
 
 	public function all(): array {
@@ -40,13 +58,37 @@ final class Template_Library {
 	}
 
 	public function search( string $search, string $category ): array {
+		$terms = self::search_terms( $search );
+
 		return array_values(
 			array_filter(
 				$this->all(),
 				static fn( array $template ) => ( '' === $category || 0 === strcasecmp( $template['category'], $category ) )
-					&& ( '' === $search || false !== stripos( $template['name'] . ' ' . $template['category_label'], $search ) )
+					&& ( '' === $search || self::matches_any( $template, $terms ) )
 			)
 		);
+	}
+
+	private static function search_terms( string $search ): array {
+		$terms = array( $search );
+		foreach ( (array) apply_filters( 'uncode_builder_abilities_template_search_aliases', self::SEARCH_ALIASES ) as $word => $alias ) {
+			if ( false !== stripos( $search, (string) $word ) ) {
+				$terms[] = str_ireplace( (string) $word, (string) $alias, $search );
+			}
+		}
+
+		return array_values( array_unique( $terms ) );
+	}
+
+	private static function matches_any( array $template, array $terms ): bool {
+		$haystack = implode( ' ', array( $template['name'], $template['category_label'], str_replace( array( '-', '_' ), ' ', $template['category'] ) ) );
+		foreach ( $terms as $term ) {
+			if ( false !== stripos( $haystack, $term ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private function default_templates(): array {
