@@ -42,7 +42,7 @@ final class List_Elements extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Lists the WPBakery / Uncode elements (shortcodes) registered on this site: tag, name, categories, whether it is a container, which children or parents it accepts, and whether it can be inserted on its own. Use it first to choose elements, then read one with get-element-schema before composing it. Filter with `search` (tag, name or description) or `category`.', 'uncode-builder-abilities' );
+		return __( 'Lists the WPBakery / Uncode elements (shortcodes) registered on this site: tag, name, categories, whether it is a container, which children or parents it accepts, and whether it can be inserted on its own. Filter with `search` (tag, name or description) or `category`. Workflow for building or changing a page: 1) get-design-tokens once, to use the site colours, fonts and sizes instead of raw values; 2) list-elements to choose elements; 3) get-element-schema per element, one group at a time; 4) get-page-tree for the `version` and paths; 5) the uncode-builder-edit abilities with `dry_run: true`, then for real.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

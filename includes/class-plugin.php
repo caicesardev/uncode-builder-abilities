@@ -30,6 +30,7 @@ final class Plugin {
 		}
 
 		Uncode_Integration::register();
+		Write_Policy::register();
 
 		add_action( 'wp_abilities_api_categories_init', array( __CLASS__, 'register_category' ) );
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'register_abilities' ) );

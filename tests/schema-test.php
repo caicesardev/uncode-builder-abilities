@@ -25,8 +25,11 @@ $resolved = array_filter( $tokens['sets']['colors'], static fn( $token ) => isse
 uba_check( 'colores con hex resuelto', count( $resolved ) === count( $tokens['sets']['colors'] ), count( $resolved ) . ' de ' . count( $tokens['sets']['colors'] ) );
 
 foreach ( array( 'vc_custom_heading', 'vc_row', 'vc_column', 'uncode_button' ) as $tag ) {
-	$full    = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag, 'compact' => false ) );
-	$compact = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag ) );
+	$full    = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag, 'group' => '*', 'compact' => false ) );
+	$compact = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag, 'group' => '*' ) );
+	$default = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag ) );
+	$expected_group = isset( $default['groups']['General'] ) ? 'General' : array_key_first( $default['groups'] );
+	uba_check( "por defecto $tag devuelve un solo grupo", $expected_group === ( $default['returned_group'] ?? '' ) && count( $default['groups'] ) > 1, $expected_group . ': ' . uba_size( $default ) . ' de ' . count( $default['groups'] ) . ' grupos' );
 	$refs    = array_count_values( array_map( static fn( $param ) => preg_replace( '/^params\..*/', 'params.*', $param['options_ref'] ), array_filter( $compact['params'], static fn( $param ) => isset( $param['options_ref'] ) ) ) );
 	$general = wp_get_ability( 'uncode-builder/get-element-schema' )->execute( array( 'tag' => $tag, 'group' => 'General' ) );
 	uba_check( "compacto $tag", strlen( wp_json_encode( $compact ) ) < strlen( wp_json_encode( $full ) ), uba_size( $full ) . ' -> ' . uba_size( $compact ) . ' | solo General: ' . uba_size( $general ) . ' | refs ' . wp_json_encode( $refs ) );

@@ -27,7 +27,7 @@ final class Insert_Elements extends Write_Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Inserts one or more WPBakery / Uncode elements, with their children, into a page. Each element is { tag, attributes?: { parameter: value }, content?: string, children?: [elements] }. Parameters and allowed values come from get-element-schema; structured values can be sent as JSON (links as { url, title, target, rel }, gradients, design CSS as { declarations: { "margin-top": "10px" } }, parameter groups) and are encoded the way WPBakery stores them. Unique IDs (uncode_shortcode_id, tab_id) are generated when left out. `parent_path` is the container to insert into ("" for the top level, where only rows and sections go); `index` is the position among its children (default: at the end). Everything is validated first: unknown parameters, values outside the options and wrong nesting refuse the whole call. Requires the `version` from get-page-tree; use `dry_run` to preview. The previous content is kept as a snapshot that restore-snapshot brings back.', 'uncode-builder-abilities' );
+		return __( 'Inserts one or more WPBakery / Uncode elements, with their children, into a page. Each element is { tag, attributes?: { parameter: value }, content?: string, children?: [elements] }. Parameters and allowed values come from get-element-schema; structured values can be sent as JSON (links as { url, title, target, rel }, gradients, design CSS as { declarations: { "margin-top": "10px" } }, parameter groups) and are encoded the way WPBakery stores them. Unique IDs (uncode_shortcode_id, tab_id) are generated when left out. `parent_path` is the container to insert into (leave it out for the top level of the page, where only rows and sections go); `index` is the position among its children (default: at the end). Everything is validated first: unknown parameters, values outside the options and wrong nesting refuse the whole call. Requires the `version` from get-page-tree; use `dry_run` to preview. The previous content is kept as a snapshot that restore-snapshot brings back.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
@@ -52,7 +52,7 @@ final class Insert_Elements extends Write_Ability {
 					'parent_path' => array(
 						'type'        => 'string',
 						'default'     => Layout_Document::ROOT_PATH,
-						'description' => 'Path of the container to insert into; "" for the top level of the page.',
+						'description' => 'Path of the container to insert into, such as "2.0". Leave it out for the top level of the page.',
 					),
 					'index'       => array(
 						'type'        => 'integer',

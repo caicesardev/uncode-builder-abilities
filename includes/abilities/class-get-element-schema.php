@@ -10,6 +10,10 @@ defined( 'ABSPATH' ) || exit;
 
 final class Get_Element_Schema extends Ability {
 
+	const ALL_GROUPS = '*';
+
+	const DEFAULT_GROUP = 'General';
+
 	private Element_Catalog $catalog;
 
 	private Schema_Compactor $compactor;
@@ -28,10 +32,10 @@ final class Get_Element_Schema extends Ability {
 	}
 
 	public function execute( $input = null ) {
-		$input  = self::input_array( $input );
-		$tag    = (string) ( $input['tag'] ?? '' );
-		$group  = (string) ( $input['group'] ?? '' );
-		$schema = $this->catalog->schema( $tag, $group, ! empty( $input['include_descriptions'] ) );
+		$input     = self::input_array( $input );
+		$tag       = (string) ( $input['tag'] ?? '' );
+		$requested = (string) ( $input['group'] ?? '' );
+		$schema    = $this->catalog->schema( $tag, self::ALL_GROUPS === $requested ? '' : $requested, ! empty( $input['include_descriptions'] ) );
 
 		if ( null === $schema ) {
 			return new WP_Error(
@@ -41,7 +45,20 @@ final class Get_Element_Schema extends Ability {
 			);
 		}
 
-		return ( $input['compact'] ?? true ) ? $this->compactor->compact( $schema, '' !== $group ) : $schema;
+		if ( '' === $requested ) {
+			$schema = self::only_default_group( $schema );
+		}
+
+		return ( $input['compact'] ?? true ) ? $this->compactor->compact( $schema, self::ALL_GROUPS !== $requested ) : $schema;
+	}
+
+	private static function only_default_group( array $schema ): array {
+		$group = isset( $schema['groups'][ self::DEFAULT_GROUP ] ) ? self::DEFAULT_GROUP : (string) array_key_first( $schema['groups'] );
+
+		$schema['returned_group'] = $group;
+		$schema['params']         = array_values( array_filter( $schema['params'], static fn( array $param ) => $param['group'] === $group ) );
+
+		return $schema;
 	}
 
 	protected function label(): string {
@@ -49,7 +66,7 @@ final class Get_Element_Schema extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Returns the parameters of one WPBakery / Uncode element: name, type, normalized `kind`, label, group, default, allowed `options`, numeric bounds, `visible_when` (the parameter only applies when another one has those values) and `active_when` (Uncode colour parameters that only apply in one colour mode). Elements can have 200+ parameters, so `groups` gives the count per group and `group` limits the reply to one of them. By default the reply is compact: long option lists that match a design token set come as `options_ref: "design_tokens.<set>"` (read them once with get-design-tokens), lists repeated inside the reply come as `options_ref: "params.<name>"` (same options as that parameter), the raw builder `type` is only kept when `kind` is unknown, and editor-only parameters are left out. `compact: false` returns everything; `include_descriptions` adds the help text.', 'uncode-builder-abilities' );
+		return __( 'Returns the parameters of one WPBakery / Uncode element: name, normalized `kind`, label, default, allowed `options`, numeric bounds, `visible_when` (the parameter only applies when another one has those values) and `active_when` (Uncode colour parameters that only apply in one colour mode). Elements can have 200+ parameters, so the reply lists every group in `groups` (with its parameter count) but only returns the parameters of one: "General" unless you send `group` (for example "Style", "Responsive" or "Animation"); `group: "*"` returns all of them and can be very large. The reply is compact: long option lists that match a design token set come as `options_ref: "design_tokens.<set>"` (read them once with get-design-tokens), lists repeated inside the reply come as `options_ref: "params.<name>"` (same options as that parameter), the raw builder `type` is only kept when `kind` is unknown, and editor-only parameters are left out. `compact: false` returns everything; `include_descriptions` adds the help text.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
@@ -62,7 +79,7 @@ final class Get_Element_Schema extends Ability {
 				),
 				'group'                => array(
 					'type'        => 'string',
-					'description' => 'Only return the parameters of this group (for example General, Style or Responsive).',
+					'description' => 'Group whose parameters to return, as listed in `groups`. Default "General"; "*" for every group.',
 				),
 				'compact'              => array(
 					'type'    => 'boolean',

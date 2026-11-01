@@ -7,6 +7,7 @@ use Uncode_Builder_Abilities\Layout_Operations;
 use Uncode_Builder_Abilities\Layout_Writer;
 use Uncode_Builder_Abilities\Plugin;
 use Uncode_Builder_Abilities\Shortcode_Parser;
+use Uncode_Builder_Abilities\Write_Policy;
 use WP_Error;
 use WP_Post;
 
@@ -43,6 +44,14 @@ abstract class Write_Ability extends Ability {
 
 		if ( ! $post instanceof WP_Post || 'revision' === $post->post_type ) {
 			return new WP_Error( 'uncode_builder_post_not_found', 'The post does not exist.', array( 'status' => 404 ) );
+		}
+
+		if ( ! Write_Policy::allows( $post ) ) {
+			return new WP_Error(
+				'uncode_builder_drafts_only',
+				sprintf( 'This site only lets these abilities edit drafts, and "%s" is %s. Work on a draft copy, or ask an administrator to allow it in Settings → Writing → AI page builder edits.', $post->post_title, $post->post_status ),
+				array( 'status' => 403 )
+			);
 		}
 
 		$document = $this->open( $post->post_content );
