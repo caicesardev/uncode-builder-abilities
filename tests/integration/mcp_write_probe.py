@@ -1,9 +1,10 @@
 import json
+import os
 import sys
 
 from mcp_probe import McpClient, tool_payload
 
-DRAFT_PAGE_ID = 179791
+DRAFT_PAGE_ID = int(os.environ["UBA_TEST_PAGE_ID"])
 READ = "wp_ability_uncode_builder_"
 EDIT = "wp_ability_uncode_builder_edit_"
 

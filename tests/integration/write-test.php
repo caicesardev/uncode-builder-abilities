@@ -1,10 +1,7 @@
 <?php
-const PAGE_ID = 179791;
+require __DIR__ . '/test-page.php';
 
 wp_set_current_user( 1 );
-if ( 'draft' !== get_post_status( PAGE_ID ) ) {
-	exit( "ABORT: la página de pruebas no es un borrador\n" );
-}
 
 function uba_run( string $name, array $input ) {
 	return wp_get_ability( $name )->execute( $input );
@@ -93,6 +90,7 @@ echo '      snippet: ', $preview['snippet'], "\n";
 $inserted = uba_run( 'uncode-builder-edit/insert-elements', array( 'post_id' => PAGE_ID, 'version' => $before['version'], 'elements' => array( $section ) ) );
 $saved    = uba_content();
 uba_check( 'insert guardado', ! is_wp_error( $inserted ) && ! empty( $inserted['saved'] ), is_wp_error( $inserted ) ? uba_error( $inserted ) : array( 'path' => $inserted['elements'][0]['path'] ?? null, 'snapshots' => count( $inserted['snapshots'] ?? array() ) ) );
+uba_check( 'insert devuelve la ruta de la fila nueva, también la "0"', ( $inserted['elements'][0]['path'] ?? null ) === (string) count( $before['tree'] ), $inserted['elements'] ?? null );
 if ( is_wp_error( $inserted ) ) {
 	exit;
 }

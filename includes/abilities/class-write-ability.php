@@ -228,7 +228,8 @@ abstract class Write_Ability extends Ability {
 						'path' => $node['path'],
 						'tag'  => $node['tag'],
 						'id'   => $node['id'] ?? null,
-					)
+					),
+					static fn( $value ) => null !== $value
 				);
 			}
 		}

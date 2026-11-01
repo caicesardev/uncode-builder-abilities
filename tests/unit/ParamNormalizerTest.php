@@ -6,6 +6,11 @@ use Uncode_Builder_Abilities\Param_Normalizer;
 
 final class ParamNormalizerTest extends Test_Case {
 
+	public function test_plain_text_falls_back_only_when_empty(): void {
+		$this->assertSame( 'Hero', Param_Normalizer::plain_text_or( '<b>Hero</b>', 'General' ) );
+		$this->assertSame( 'General', Param_Normalizer::plain_text_or( '<b> </b>', 'General' ) );
+	}
+
 	public function test_reads_every_wpbakery_option_format(): void {
 		$this->assertSame(
 			array(

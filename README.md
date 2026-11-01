@@ -81,7 +81,7 @@ composer lint   # WordPress coding standards and PHP 7.4+ compatibility
 ```
 
 - `tests/unit/` covers the logic that does not need a site: escaping and decoding, value validation and security rules, the shortcode parser and the element composer, against a small WPBakery map fixture.
-- `tests/integration/` holds WP-CLI suites (`wp eval-file tests/integration/write-test.php`, and `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`, `settings-test.php`) and Python MCP probes, run against a real WPBakery / Uncode site. They work on a draft page whose id is set at the top of each file; never point them at published content.
+- `tests/integration/` holds WP-CLI suites (`wp eval-file tests/integration/write-test.php`, and `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`, `settings-test.php`) and Python MCP probes, run against a real WPBakery / Uncode site. They work on the empty draft page given in `UBA_TEST_PAGE_ID` (`UBA_TEST_PAGE_ID=123 wp eval-file …`) and refuse to run on anything else; the MCP probes also read the endpoint from `UBA_MCP_ENDPOINT`. Never point them at published content.
 - GitHub Actions lints every file on PHP 7.4–8.4, runs PHPCS and the unit tests, and builds the release ZIP (without development files) when a `v*` tag is pushed.
 - Translations live in `languages/`. Agent-facing ability descriptions stay in English; the interface is translated (Spanish included).
 

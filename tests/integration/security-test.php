@@ -1,5 +1,5 @@
 <?php
-const PAGE_ID = 179791;
+require __DIR__ . '/test-page.php';
 
 add_filter(
 	'vc_load_default_templates',
@@ -14,9 +14,6 @@ add_filter(
 );
 
 wp_set_current_user( 1 );
-if ( 'draft' !== get_post_status( PAGE_ID ) ) {
-	exit( "ABORT: la página de pruebas no es un borrador\n" );
-}
 
 function uba_check( string $label, bool $ok, $detail = '' ): void {
 	$text = is_string( $detail ) ? $detail : wp_json_encode( $detail, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );

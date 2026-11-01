@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once ABSPATH . 'wp-includes/compat.php';
 require_once ABSPATH . 'wp-includes/shortcodes.php';
+require_once ABSPATH . 'wp-includes/class-wp-error.php';
 
 require_once __DIR__ . '/fixtures/class-wpbmap.php';
 require_once __DIR__ . '/class-test-case.php';
@@ -35,6 +36,8 @@ foreach (
 		'class-layout-document.php',
 		'class-nesting-rules.php',
 		'class-element-composer.php',
+		'class-layout-operations.php',
+		'class-layout-preview.php',
 		'class-uncode-integration.php',
 	) as $file
 ) {
