@@ -6,6 +6,9 @@ use Uncode_Builder_Abilities\Abilities\Ability;
 use Uncode_Builder_Abilities\Abilities\Create_Draft_Copy;
 use Uncode_Builder_Abilities\Abilities\Get_Design_Tokens;
 use Uncode_Builder_Abilities\Abilities\Get_Element_Schema;
+use Uncode_Builder_Abilities\Abilities\Get_Page_Options;
+use Uncode_Builder_Abilities\Abilities\Render_Preview;
+use Uncode_Builder_Abilities\Abilities\Update_Page_Options;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Tree;
 use Uncode_Builder_Abilities\Abilities\Get_Template;
 use Uncode_Builder_Abilities\Abilities\Insert_Elements;
@@ -80,7 +83,14 @@ final class Plugin {
 			new Remove_Element( $parser, $operations, $writer ),
 			new Restore_Snapshot( $parser, $operations, $writer, $snapshots ),
 			new Create_Draft_Copy( new Draft_Copies() ),
+			new Render_Preview( $parser, new Layout_Preview() ),
 		);
+
+		if ( Page_Options::available() ) {
+			$page_options = new Page_Options( $tokens );
+			$abilities[]  = new Get_Page_Options( $page_options );
+			$abilities[]  = new Update_Page_Options( $parser, $operations, $writer, $page_options );
+		}
 
 		foreach ( apply_filters( 'uncode_builder_abilities_abilities', $abilities, $catalog, $parser ) as $ability ) {
 			if ( $ability instanceof Ability ) {

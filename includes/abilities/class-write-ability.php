@@ -72,7 +72,16 @@ abstract class Write_Ability extends Ability {
 			return $edit;
 		}
 
-		$reply = $this->describe_edit( $document, $edit );
+		$meta = $edit['meta'] ?? array();
+		if ( array() !== $meta && Draft_Copies::is_autosave( $post ) ) {
+			return new WP_Error(
+				'uncode_builder_meta_in_autosave',
+				'WordPress autosaves only keep the title, content and excerpt, so page options cannot be changed on this copy. Change them on a draft, or on a Rewrite & Republish copy.',
+				array( 'status' => 400 )
+			);
+		}
+
+		$reply = $this->describe_edit( $document, $edit, $post );
 
 		if ( ! $reply['changed'] ) {
 			return array_merge( $reply, array( 'saved' => false, 'version' => $document->version() ) );
@@ -82,7 +91,7 @@ abstract class Write_Ability extends Ability {
 			return array_merge( $reply, array( 'dry_run' => true, 'saved' => false, 'version' => $document->version() ) );
 		}
 
-		$saved = $this->writer->commit( $post, $edit['content'], $this->qualified_name() );
+		$saved = $this->writer->commit( $post, $edit['content'], $this->qualified_name(), $meta );
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
 		}
@@ -194,8 +203,9 @@ abstract class Write_Ability extends Ability {
 		return new Layout_Document( $content, $this->parser->parse( $content, false )['tree'] );
 	}
 
-	private function describe_edit( Layout_Document $before, array $edit ): array {
+	private function describe_edit( Layout_Document $before, array $edit, WP_Post $post ): array {
 		$after    = $this->open( $edit['content'] );
+		$options  = self::option_changes( $post->ID, $edit['meta'] ?? array() );
 		$elements = array();
 		foreach ( $edit['focus'] as $offset ) {
 			$node = $after->element_starting_at( $offset );
@@ -212,13 +222,29 @@ abstract class Write_Ability extends Ability {
 
 		return array_filter(
 			array(
-				'changed'       => $edit['content'] !== $before->content(),
+				'changed'       => $edit['content'] !== $before->content() || array() !== $options,
 				'elements'      => $elements,
+				'options'       => $options,
 				'generated_ids' => $edit['generated_ids'] ?? array(),
 				'snippet'       => $edit['snippet'] ?? null,
 				'warnings'      => $edit['warnings'] ?? array(),
 			),
 			static fn( $value ) => false === $value || ( null !== $value && array() !== $value )
 		);
+	}
+
+	private static function option_changes( int $post_id, array $meta ): array {
+		$changes = array();
+		foreach ( $meta as $key => $value ) {
+			$before = metadata_exists( 'post', $post_id, $key ) ? get_metadata( 'post', $post_id, $key, true ) : null;
+			if ( $before !== $value ) {
+				$changes[ $key ] = array(
+					'before' => $before,
+					'after'  => $value,
+				);
+			}
+		}
+
+		return $changes;
 	}
 }

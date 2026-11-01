@@ -20,8 +20,11 @@ WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBa
 | `uncode-builder/list-content-blocks` | read | Uncode content blocks (only when the theme registers them). |
 | `uncode-builder/list-templates` | read | Template library: WPBakery default templates (with Uncode, its 900 wireframes) and user-saved templates. Categories only unless `category` or `search` is sent. |
 | `uncode-builder/get-template` | read | One template as a layout tree, to inspect it before inserting. |
+| `uncode-builder/render-preview` | read | Renders an item or one element the way the site does and returns a readable outline (headings, texts, links, images), issues (heading jumps, empty links, images without alt), unrendered shortcodes and a preview URL. |
+| `uncode-builder/get-page-options` | read | Per-page theme settings outside the layout (with Uncode: header, menu, width, content and footer blocks, sidebar, scroll): index by section, stored values and definitions. Never the global theme options. Only when the theme provides them. |
 | `uncode-builder-edit/insert-elements` | edit | Insert elements with their children. |
 | `uncode-builder-edit/insert-template` | edit | Insert a template as designed, with fresh unique ids; then adapt it with `update-element`. |
+| `uncode-builder-edit/update-page-options` | edit | Change per-page settings, validated by kind (choices, toggles, measurements, palette colours, backgrounds); `null` inherits the theme default again. Kept in the snapshot, so `restore-snapshot` undoes it. Not available on autosave copies, which cannot hold settings. |
 | `uncode-builder-edit/update-element` | edit | Change parameters or content of one element. |
 | `uncode-builder-edit/move-element` | edit | Move an element to another container. |
 | `uncode-builder-edit/remove-element` | edit | Remove an element (`expect_tag` required). |
@@ -66,11 +69,12 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_write_allowed`, `uncode_builder_abilities_can_write_post` | Restrict which items can be edited. |
 | `uncode_builder_abilities_catalog_capability` | Capability for the catalogue abilities (default `edit_posts`). |
 | `uncode_builder_abilities_show_in_rest` | Expose an ability in the core REST API. |
+| `uncode_builder_abilities_page_options_available`, `uncode_builder_abilities_page_options` | Provide per-page settings for another theme (normalized fields: name, label, section, kind, options, default, visible_when). |
 | `uncode_builder_abilities_draft_copy_strategy` | `autosave` (native, default) or `rewrite_and_republish` (Yoast Duplicate Post) for create-draft-copy. |
 
 ## Tests
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
 
 ## License
 

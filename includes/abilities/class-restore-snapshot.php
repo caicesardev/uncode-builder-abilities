@@ -33,6 +33,7 @@ final class Restore_Snapshot extends Write_Ability {
 
 		return array(
 			'content'  => (string) $snapshot['content'],
+			'meta'     => (array) ( $snapshot['meta'] ?? array() ),
 			'focus'    => array(),
 			'warnings' => array( sprintf( 'Restores the layout saved at %s, before "%s".', $snapshot['saved_at'], $snapshot['reason'] ) ),
 		);
@@ -47,7 +48,7 @@ final class Restore_Snapshot extends Write_Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Puts back the layout as it was before the last change made with these abilities. The layout being replaced becomes the new snapshot, so calling it again undoes the restore. get-page-tree lists the snapshots kept for an item (one by default). Requires the `version` from get-page-tree; use `dry_run` to preview.', 'uncode-builder-abilities' );
+		return __( 'Puts back the layout, and the page options changed with update-page-options, as they were before the last change made with these abilities. The layout being replaced becomes the new snapshot, so calling it again undoes the restore. get-page-tree lists the snapshots kept for an item (one by default). Requires the `version` from get-page-tree; use `dry_run` to preview.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

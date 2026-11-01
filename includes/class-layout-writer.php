@@ -20,16 +20,19 @@ final class Layout_Writer {
 		$this->snapshots = $snapshots;
 	}
 
-	public function commit( WP_Post $post, string $content, string $reason ) {
-		$this->snapshots->push( $post, $reason );
+	public function commit( WP_Post $post, string $content, string $reason, array $meta = array() ) {
+		$this->snapshots->push( $post, $reason, array_keys( $meta ) );
 
-		$saved = self::save_content( $post->ID, $content );
-		if ( is_wp_error( $saved ) ) {
-			return $saved;
+		if ( $content !== $post->post_content ) {
+			$saved = self::save_content( $post->ID, $content );
+			if ( is_wp_error( $saved ) ) {
+				return $saved;
+			}
+			update_metadata( 'post', $post->ID, self::BUILDER_STATUS_META, 'true' );
+			self::rebuild_builder_css( $post->ID );
 		}
 
-		update_metadata( 'post', $post->ID, self::BUILDER_STATUS_META, 'true' );
-		self::rebuild_builder_css( $post->ID );
+		self::save_meta( $post->ID, $meta );
 		do_action( 'litespeed_purge_post', $post->ID );
 		do_action( 'uncode_builder_abilities_layout_saved', $post->ID, $reason );
 
@@ -86,6 +89,16 @@ final class Layout_Writer {
 			);
 		} finally {
 			$_POST = $request_fields;
+		}
+	}
+
+	private static function save_meta( int $post_id, array $meta ): void {
+		foreach ( $meta as $key => $value ) {
+			if ( null === $value ) {
+				delete_metadata( 'post', $post_id, $key );
+			} else {
+				update_metadata( 'post', $post_id, $key, wp_slash( $value ) );
+			}
 		}
 	}
 
