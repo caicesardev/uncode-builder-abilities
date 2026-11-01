@@ -14,7 +14,15 @@ final class Attribute_Encoder {
 
 	const MAX_LISTED_OPTIONS = 20;
 
+	const UNSAFE_CSS_PATTERN = '/[<>\\\\]|expression\s*\(|javascript\s*:|@import|behaviou?r\s*:/i';
+
+	const RAW_CODE_REFUSAL = 'Raw HTML and code need the unfiltered_html capability, which this user does not have.';
+
 	private static int $design_css_sequence = 0;
+
+	public static function may_post_unfiltered(): bool {
+		return current_user_can( 'unfiltered_html' );
+	}
 
 	public function encode( array $param, $value ): string {
 		$plain = $this->plain_value( $param, $value );
@@ -31,7 +39,15 @@ final class Attribute_Encoder {
 			throw new InvalidArgumentException( '`content` must be a string.' );
 		}
 
-		return in_array( $type, self::ENCODED_CONTENT_TYPES, true ) ? base64_encode( rawurlencode( $content ) ) : $content;
+		if ( ! in_array( $type, self::ENCODED_CONTENT_TYPES, true ) ) {
+			return $content;
+		}
+
+		if ( ! self::may_post_unfiltered() ) {
+			throw new InvalidArgumentException( self::RAW_CODE_REFUSAL );
+		}
+
+		return base64_encode( rawurlencode( $content ) );
 	}
 
 	private function plain_value( array $param, $value ): string {
@@ -45,13 +61,18 @@ final class Attribute_Encoder {
 			case 'fraction':
 				return self::fraction_value( $value );
 			case 'link':
-				return is_array( $value ) ? self::link_value( $value ) : self::text_value( $value );
+				return is_array( $value ) ? self::link_value( $value ) : self::packed_link_value( self::text_value( $value ) );
+			case 'url':
+				return self::safe_url( self::text_value( $value ) );
 			case 'gradient':
-				return is_array( $value ) ? self::json( $value ) : self::text_value( $value );
+				return is_array( $value ) ? self::json( self::filtered_leaves( $value ) ) : self::text_value( $value );
 			case 'group':
-				return is_array( $value ) ? rawurlencode( self::json( $value ) ) : self::text_value( $value );
+				return rawurlencode( self::json( self::filtered_leaves( is_array( $value ) ? $value : self::group_from_text( self::text_value( $value ) ) ) ) );
 			case 'encoded_html':
 			case 'encoded_code':
+				if ( ! self::may_post_unfiltered() ) {
+					throw new InvalidArgumentException( self::RAW_CODE_REFUSAL );
+				}
 				return base64_encode( rawurlencode( self::text_value( $value ) ) );
 			case 'design_css':
 				return is_array( $value ) ? self::design_css_value( $value ) : self::design_css_text( self::text_value( $value ) );
@@ -127,11 +148,62 @@ final class Attribute_Encoder {
 		$parts = array();
 		foreach ( Attribute_Decoder::LINK_PARTS as $key ) {
 			if ( isset( $link[ $key ] ) && '' !== (string) $link[ $key ] ) {
-				$parts[] = $key . ':' . rawurlencode( self::text_value( $link[ $key ] ) );
+				$value   = self::text_value( $link[ $key ] );
+				$parts[] = $key . ':' . rawurlencode( 'url' === $key ? self::safe_url( $value ) : $value );
 			}
 		}
 
 		return implode( '|', $parts );
+	}
+
+	private static function packed_link_value( string $value ): string {
+		$link = ( new Attribute_Decoder() )->decode( 'vc_link', $value );
+		if ( isset( $link['url'] ) ) {
+			self::safe_url( $link['url'] );
+		}
+
+		return $value;
+	}
+
+	private static function safe_url( string $url ): string {
+		$url = trim( $url );
+		if ( '' !== $url && '' === esc_url_raw( $url ) ) {
+			throw new InvalidArgumentException( sprintf( '"%s" is not an allowed link. Use a relative path, an http(s) address, mailto: or tel:.', $url ) );
+		}
+
+		return $url;
+	}
+
+	private static function group_from_text( string $value ): array {
+		$decoded = json_decode( rawurldecode( $value ), true );
+		if ( ! is_array( $decoded ) ) {
+			throw new InvalidArgumentException( 'Send the parameter group as a list of objects.' );
+		}
+
+		return $decoded;
+	}
+
+	private static function filtered_leaves( array $value ): array {
+		if ( self::may_post_unfiltered() ) {
+			return $value;
+		}
+
+		array_walk_recursive(
+			$value,
+			static function ( &$leaf ) {
+				if ( is_string( $leaf ) ) {
+					$leaf = wp_kses_post( $leaf );
+				}
+			}
+		);
+
+		return $value;
+	}
+
+	private static function assert_safe_css( string $css ): void {
+		if ( preg_match( self::UNSAFE_CSS_PATTERN, $css ) ) {
+			throw new InvalidArgumentException( sprintf( 'The CSS "%s" contains characters or constructs that are not allowed.', $css ) );
+		}
 	}
 
 	private static function design_css_value( array $value ): string {
@@ -139,24 +211,46 @@ final class Attribute_Encoder {
 
 		$rules = '';
 		foreach ( $declarations as $property => $declaration ) {
-			$property    = strtolower( trim( (string) $property ) );
-			$declaration = trim( self::text_value( $declaration ) );
-			if ( ! preg_match( '/^[a-z-]+$/', $property ) || preg_match( '/[{};]/', $declaration ) ) {
-				throw new InvalidArgumentException( sprintf( 'Invalid CSS declaration "%s: %s".', $property, $declaration ) );
-			}
-			$important = false === stripos( $declaration, '!important' ) ? ' !important' : '';
-			$rules    .= sprintf( '%s: %s%s;', $property, $declaration, $important );
+			$rules .= self::css_declaration( (string) $property, self::text_value( $declaration ) );
 		}
 
 		return sprintf( '.%s%d{%s}', self::DESIGN_CSS_CLASS_PREFIX, (int) ( microtime( true ) * 1000 ) + self::$design_css_sequence++, $rules );
 	}
 
 	private static function design_css_text( string $value ): string {
-		if ( '' !== $value && ! preg_match( '/^\.[\w-]+\{[^{}]*\}$/', $value ) ) {
+		if ( '' === $value ) {
+			return $value;
+		}
+
+		if ( ! preg_match( '/^\.[\w-]+\{[^{}]*\}$/', $value ) ) {
 			throw new InvalidArgumentException( 'Design CSS must look like ".vc_custom_123{margin-top: 10px !important;}", or be sent as an object of CSS declarations.' );
 		}
 
+		foreach ( ( new Attribute_Decoder() )->decode( 'css_editor', $value )['declarations'] ?? array() as $property => $declaration ) {
+			self::css_declaration( (string) $property, $declaration );
+		}
+
 		return $value;
+	}
+
+	private static function css_declaration( string $property, string $declaration ): string {
+		$property    = strtolower( trim( $property ) );
+		$declaration = trim( $declaration );
+
+		if ( ! preg_match( '/^[a-z-]+$/', $property ) || preg_match( '/[{};]/', $declaration ) ) {
+			throw new InvalidArgumentException( sprintf( 'Invalid CSS declaration "%s: %s".', $property, $declaration ) );
+		}
+
+		self::assert_safe_css( $declaration );
+
+		$without_important = trim( str_ireplace( '!important', '', $declaration ) );
+		if ( ! self::may_post_unfiltered() && '' === safecss_filter_attr( $property . ': ' . $without_important ) ) {
+			throw new InvalidArgumentException( sprintf( 'The CSS declaration "%s: %s" is not allowed for this user.', $property, $declaration ) );
+		}
+
+		$important = false === stripos( $declaration, '!important' ) ? ' !important' : '';
+
+		return sprintf( '%s: %s%s;', $property, $declaration, $important );
 	}
 
 	private static function attachment_ids( array $values, int $limit ): string {

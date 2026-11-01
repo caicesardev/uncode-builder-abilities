@@ -37,6 +37,11 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 - Values are validated against the live `vc_map` (parameter names, options, bounds, nesting) before anything is saved; `dry_run` previews the result.
 - Unique ids (`uncode_shortcode_id`, `tab_id`) are generated, WPBakery's custom CSS is rebuilt and LiteSpeed is purged after saving.
 - One snapshot per post is kept for `restore-snapshot`, without relying on WordPress revisions.
+- Links only accept relative paths and the protocols WordPress allows (no `javascript:` or `data:`); design CSS refuses `</style>`, `expression()`, `@import` and script URLs.
+- Users without `unfiltered_html` cannot add raw HTML or code (also inside templates), their design CSS goes through `safecss_filter_attr` and encoded values such as parameter groups through `wp_kses_post`.
+- One call creates at most 500 elements, nested up to 30 levels.
+- Elements the theme retires from its editor (for Uncode, read from its own list) are hidden from `list-elements` and cannot be inserted; existing ones can still be edited.
+- Uninstalling the plugin removes its setting and its post meta (snapshots), on every site of a network.
 - **Settings → Writing → AI page builder edits** decides which items can be edited: only drafts and pending items (default) or anything the user can edit. In drafts-only mode, published pages are changed through `create-draft-copy`.
 
 ## Setup with Easy MCP AI
@@ -65,7 +70,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 
 ## Tests
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
 
 ## License
 

@@ -10,6 +10,12 @@ final class Element_Composer {
 
 	const AUTO_ID_KIND = 'auto_id';
 
+	const MAX_ELEMENTS = 500;
+
+	const MAX_DEPTH = 30;
+
+	private int $composed_elements = 0;
+
 	private Element_Catalog $catalog;
 
 	private Nesting_Rules $nesting;
@@ -136,12 +142,25 @@ final class Element_Composer {
 	}
 
 	private function reset( array $used_ids ): void {
-		$this->errors        = array();
-		$this->generated_ids = array();
-		$this->used_ids      = array_fill_keys( array_map( 'strval', $used_ids ), true );
+		$this->errors            = array();
+		$this->generated_ids     = array();
+		$this->composed_elements = 0;
+		$this->used_ids          = array_fill_keys( array_map( 'strval', $used_ids ), true );
 	}
 
-	private function element( $spec, ?string $parent_tag, string $location ): string {
+	private function element( $spec, ?string $parent_tag, string $location, int $depth = 1 ): string {
+		if ( $depth > self::MAX_DEPTH ) {
+			$this->fail( $location, sprintf( 'Elements cannot be nested more than %d levels deep.', self::MAX_DEPTH ) );
+			return '';
+		}
+
+		if ( ++$this->composed_elements > self::MAX_ELEMENTS ) {
+			if ( self::MAX_ELEMENTS + 1 === $this->composed_elements ) {
+				$this->fail( $location, sprintf( 'One call can create at most %d elements; split the change into several calls.', self::MAX_ELEMENTS ) );
+			}
+			return '';
+		}
+
 		if ( ! is_array( $spec ) || empty( $spec['tag'] ) || ! is_string( $spec['tag'] ) ) {
 			$this->fail( $location, 'Each element needs a `tag`.' );
 			return '';
@@ -153,6 +172,12 @@ final class Element_Composer {
 			return '';
 		}
 
+		if ( $this->catalog->is_legacy( $tag ) ) {
+			$replacement = $this->catalog->replacement_for( $tag );
+			$this->fail( $location, sprintf( 'The theme retires "%s" from its editor%s.', $tag, null === $replacement ? '; use list-elements to choose a current element' : sprintf( '; use "%s" instead', $replacement ) ) );
+			return '';
+		}
+
 		$violation = $this->nesting->violation( $parent_tag, $tag );
 		if ( null !== $violation ) {
 			$this->fail( $location, $violation );
@@ -160,7 +185,7 @@ final class Element_Composer {
 
 		$attributes = $this->attributes( $tag, $spec['attributes'] ?? array(), $location );
 		$attributes = $this->with_generated_ids( $tag, $attributes, $location );
-		$inner      = $this->inner( $tag, $spec, $location );
+		$inner      = $this->inner( $tag, $spec, $location, $depth );
 
 		return Shortcode_Serializer::element( $tag, $attributes, $inner );
 	}
@@ -239,7 +264,7 @@ final class Element_Composer {
 		return $attributes;
 	}
 
-	private function inner( string $tag, array $spec, string $location ): ?string {
+	private function inner( string $tag, array $spec, string $location, int $depth ): ?string {
 		$is_container    = $this->catalog->is_container( $tag );
 		$accepts_content = $this->catalog->accepts_content( $tag );
 		$children        = $spec['children'] ?? array();
@@ -260,7 +285,7 @@ final class Element_Composer {
 
 		if ( $is_container && is_array( $children ) ) {
 			foreach ( array_values( $children ) as $index => $child ) {
-				$inner .= $this->element( $child, $tag, sprintf( '%s.children[%d]', $location, $index ) );
+				$inner .= $this->element( $child, $tag, sprintf( '%s.children[%d]', $location, $index ), $depth + 1 );
 			}
 		}
 

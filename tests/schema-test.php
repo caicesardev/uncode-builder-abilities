@@ -14,7 +14,9 @@ $plugin = get_plugin_data( WP_PLUGIN_DIR . '/uncode-builder-abilities/uncode-bui
 uba_check( 'cabecera del plugin', 'caicesardev' === $plugin['Author'] && 'https://caicesardev.com' === $plugin['AuthorURI'], array( $plugin['Version'], $plugin['Author'], $plugin['AuthorURI'], $plugin['PluginURI'] ) );
 
 $names = array_values( array_filter( array_keys( wp_get_abilities() ), static fn( $name ) => 0 === strpos( $name, 'uncode-builder' ) ) );
-uba_check( '10 abilities registradas', 10 === count( $names ), $names );
+$expected = array( 'list-elements', 'get-element-schema', 'get-design-tokens', 'get-page-tree', 'list-content-blocks', 'list-templates', 'get-template', 'insert-elements', 'insert-template', 'update-element', 'move-element', 'remove-element', 'restore-snapshot', 'create-draft-copy' );
+$missing  = array_filter( $expected, static fn( $ability ) => ! in_array( 'uncode-builder/' . $ability, $names, true ) && ! in_array( 'uncode-builder-edit/' . $ability, $names, true ) );
+uba_check( 'todas las abilities registradas', array() === $missing, array( 'total' => count( $names ), 'faltan' => array_values( $missing ) ) );
 
 $tokens = wp_get_ability( 'uncode-builder/get-design-tokens' )->execute( array() );
 uba_check( 'get-design-tokens', ! empty( $tokens['sets']['colors'] ), array( 'tamaño' => uba_size( $tokens ), 'counts' => $tokens['counts'] ) );

@@ -24,6 +24,7 @@ final class List_Content_Blocks extends Ability {
 			array(
 				'post_type'      => self::POST_TYPE,
 				'post_status'    => array( 'publish', 'draft', 'private', 'pending', 'future' ),
+				'perm'           => 'readable',
 				's'              => (string) ( $input['search'] ?? '' ),
 				'posts_per_page' => self::MAX_RESULTS,
 				'orderby'        => 'title',

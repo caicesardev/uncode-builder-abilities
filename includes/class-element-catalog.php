@@ -34,6 +34,8 @@ final class Element_Catalog {
 
 	private array $params_by_tag = array();
 
+	private ?array $legacy = null;
+
 	public function __construct( Param_Normalizer $normalizer ) {
 		$this->normalizer = $normalizer;
 	}
@@ -58,6 +60,16 @@ final class Element_Catalog {
 
 	public function accepts_content( string $tag ): bool {
 		return null !== $this->param_type( $tag, 'content' );
+	}
+
+	public function is_legacy( string $tag ): bool {
+		return array_key_exists( $tag, $this->legacy_elements() );
+	}
+
+	public function replacement_for( string $tag ): ?string {
+		$replacement = $this->legacy_elements()[ $tag ] ?? null;
+
+		return is_string( $replacement ) && $this->has( $replacement ) ? $replacement : null;
 	}
 
 	public function relations( string $tag ): array {
@@ -151,6 +163,12 @@ final class Element_Catalog {
 		return $this->map;
 	}
 
+	private function legacy_elements(): array {
+		$this->legacy ??= (array) apply_filters( 'uncode_builder_abilities_legacy_elements', array() );
+
+		return $this->legacy;
+	}
+
 	private function params( string $tag, bool $include_descriptions ): array {
 		$mapped = $this->normalizer->normalize_all( $this->map()[ $tag ]['params'] ?? array(), $include_descriptions );
 		$names  = array_column( $mapped, 'name' );
@@ -184,7 +202,8 @@ final class Element_Catalog {
 			'container'   => $this->is_container( $tag ),
 			'insertable'  => $this->is_insertable( $tag ),
 			'has_content' => $this->accepts_content( $tag ),
-			'deprecated'  => ! empty( $element['deprecated'] ),
+			'deprecated'  => ! empty( $element['deprecated'] ) || $this->is_legacy( $tag ),
+			'use_instead' => $this->replacement_for( $tag ) ?? '',
 			'children'    => $relations['children'],
 			'parents'     => $relations['parents'],
 		);

@@ -54,6 +54,37 @@ final class Uncode_Integration {
 
 	const CONTENT_BLOCK_POST_TYPE = 'uncodeblock';
 
+	// Uncode retires these WPBakery modules only on admin_init, so REST and MCP requests still see them in the map.
+	const BACKEND_SETUP_FUNCTION = 'uncode_init_back_custom_vc';
+
+	const RETIRED_MODULES_FILE = 'remove_components.php';
+
+	const RETIRED_MODULE_REPLACEMENTS = array(
+		'vc_btn'                => 'vc_button',
+		'vc_button2'            => 'vc_button',
+		'vc_cta_button'         => 'vc_button',
+		'vc_cta_button2'        => 'vc_button',
+		'vc_tta_tabs'           => 'vc_tabs',
+		'vc_tta_tour'           => 'vc_tabs',
+		'vc_tta_pageable'       => 'vc_tabs',
+		'vc_tta_accordion'      => 'vc_accordion',
+		'vc_tta_toggle'         => 'vc_accordion',
+		'vc_toggle'             => 'vc_accordion',
+		'vc_text_separator'     => 'vc_separator',
+		'vc_images_carousel'    => 'uncode_index',
+		'vc_carousel'           => 'uncode_index',
+		'vc_posts_slider'       => 'uncode_index',
+		'vc_basic_grid'         => 'uncode_index',
+		'vc_media_grid'         => 'uncode_index',
+		'vc_masonry_grid'       => 'uncode_index',
+		'vc_masonry_media_grid' => 'uncode_index',
+		'vc_posts_grid'         => 'uncode_index',
+		'vc_teaser_grid'        => 'uncode_index',
+		'vc_pricing_table'      => 'uncode_pricing',
+		'vc_goo_maps'           => 'vc_gmaps',
+		'vc_copyright'          => 'uncode_copyright',
+	);
+
 	private static ?array $resolved_tokens = null;
 
 	public static function register(): void {
@@ -64,6 +95,30 @@ final class Uncode_Integration {
 		add_filter( 'uncode_builder_abilities_design_token', array( __CLASS__, 'resolve_token' ), 10, 2 );
 		add_filter( 'uncode_builder_abilities_abilities', array( __CLASS__, 'add_abilities' ) );
 		add_action( 'uncode_builder_abilities_before_load_templates', array( __CLASS__, 'adapt_wireframes_to_site' ) );
+		add_filter( 'uncode_builder_abilities_legacy_elements', array( __CLASS__, 'add_retired_modules' ) );
+	}
+
+	public static function add_retired_modules( array $legacy ): array {
+		foreach ( self::retired_modules() as $tag ) {
+			$legacy[ $tag ] ??= self::RETIRED_MODULE_REPLACEMENTS[ $tag ] ?? null;
+		}
+
+		return $legacy;
+	}
+
+	private static function retired_modules(): array {
+		if ( ! function_exists( self::BACKEND_SETUP_FUNCTION ) ) {
+			return array();
+		}
+
+		$file = dirname( ( new \ReflectionFunction( self::BACKEND_SETUP_FUNCTION ) )->getFileName() ) . '/' . self::RETIRED_MODULES_FILE;
+		if ( ! is_readable( $file ) ) {
+			return array();
+		}
+
+		preg_match_all( '/vc_remove_element\(\s*[\'"]([\w-]+)[\'"]\s*\)/', (string) file_get_contents( $file ), $matches );
+
+		return array_values( array_unique( $matches[1] ) );
 	}
 
 	public static function adapt_wireframes_to_site(): void {

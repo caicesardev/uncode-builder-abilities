@@ -40,6 +40,15 @@ final class Layout_Operations {
 				);
 			}
 		}
+		if ( ! Attribute_Encoder::may_post_unfiltered() ) {
+			foreach ( $this->raw_code_paths( $tree ) as $path ) {
+				$errors[] = array(
+					'at'      => 'template.' . $path,
+					'message' => Attribute_Encoder::RAW_CODE_REFUSAL,
+				);
+			}
+		}
+
 		if ( array() !== $errors ) {
 			return self::invalid( $errors );
 		}
@@ -167,6 +176,33 @@ final class Layout_Operations {
 			'focus'    => array(),
 			'warnings' => $this->emptied_parent_warnings( $document, $node ),
 		);
+	}
+
+	private function raw_code_paths( array $nodes ): array {
+		$paths = array();
+		foreach ( $nodes as $node ) {
+			if ( isset( $node['tag'] ) && $this->holds_raw_code( $node ) ) {
+				$paths[] = $node['path'];
+			}
+			$paths = array_merge( $paths, $this->raw_code_paths( $node['children'] ?? array() ) );
+		}
+
+		return $paths;
+	}
+
+	private function holds_raw_code( array $node ): bool {
+		if ( in_array( $this->catalog->param_type( $node['tag'], 'content' ), Attribute_Encoder::ENCODED_CONTENT_TYPES, true ) ) {
+			return true;
+		}
+
+		$params = $this->catalog->params_by_name( $node['tag'] );
+		foreach ( array_keys( Shortcode_Parser::raw_attributes( $node[ Shortcode_Parser::SOURCE_KEY ]['attributes_text'] ) ) as $name ) {
+			if ( in_array( $params[ $name ]['kind'] ?? '', array( 'encoded_html', 'encoded_code' ), true ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private function container_tag( Layout_Document $document, string $parent_path ) {
