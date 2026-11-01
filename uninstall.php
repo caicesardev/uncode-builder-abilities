@@ -2,7 +2,7 @@
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-const UNCODE_BUILDER_ABILITIES_OPTIONS = array( 'uncode_builder_abilities_write_policy' );
+const UNCODE_BUILDER_ABILITIES_OPTIONS = array( 'uncode_builder_abilities_write_policy', 'uncode_builder_abilities_snapshot_limit', 'uncode_builder_abilities_draft_copy_strategy' );
 
 const UNCODE_BUILDER_ABILITIES_POST_META = array( '_uncode_builder_abilities_snapshots', '_uncode_builder_abilities_copy_of' );
 
@@ -21,8 +21,15 @@ if ( ! is_multisite() ) {
 	return;
 }
 
-foreach ( get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) as $site_id ) {
-	switch_to_blog( $site_id );
+$uncode_builder_abilities_sites = get_sites(
+	array(
+		'fields' => 'ids',
+		'number' => 0,
+	)
+);
+
+foreach ( $uncode_builder_abilities_sites as $uncode_builder_abilities_site_id ) {
+	switch_to_blog( $uncode_builder_abilities_site_id );
 	uncode_builder_abilities_remove_site_data();
 	restore_current_blog();
 }

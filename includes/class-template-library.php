@@ -19,21 +19,21 @@ final class Template_Library {
 	const CONTENT_BLOCK_CLASS = 'for-content-blocks';
 
 	const SEARCH_ALIASES = array(
-		'hero'         => 'header',
-		'banner'       => 'header',
-		'cta'          => 'call to action',
-		'testimonial'  => 'quote',
-		'review'       => 'quote',
-		'team'         => 'team member',
-		'faq'          => 'accordion',
-		'prices'       => 'pricing',
-		'plans'        => 'pricing',
-		'features'     => 'icon',
-		'services'     => 'icon',
-		'contact'      => 'form',
-		'stats'        => 'counter',
-		'portfolio'    => 'portfolio',
-		'logos'        => 'carousel',
+		'hero'        => 'header',
+		'banner'      => 'header',
+		'cta'         => 'call to action',
+		'testimonial' => 'quote',
+		'review'      => 'quote',
+		'team'        => 'team member',
+		'faq'         => 'accordion',
+		'prices'      => 'pricing',
+		'plans'       => 'pricing',
+		'features'    => 'icon',
+		'services'    => 'icon',
+		'contact'     => 'form',
+		'stats'       => 'counter',
+		'portfolio'   => 'portfolio',
+		'logos'       => 'carousel',
 	);
 
 	private ?array $templates = null;
@@ -105,7 +105,8 @@ final class Template_Library {
 			}
 
 			$classes  = preg_split( '/\s+/', trim( (string) ( $template['custom_class'] ?? '' ) ) );
-			$category = sanitize_key( $classes[0] ?? '' ) ?: self::UNCATEGORIZED;
+			$category = sanitize_key( $classes[0] ?? '' );
+			$category = '' === $category ? self::UNCATEGORIZED : $category;
 			$id       = self::unique_id( self::DEFAULT_PREFIX . sanitize_title( (string) ( $template['name'] ?? '' ) ), $templates );
 
 			$templates[ $id ] = array(

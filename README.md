@@ -45,7 +45,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 - One call creates at most 500 elements, nested up to 30 levels.
 - Elements the theme retires from its editor (for Uncode, read from its own list) are hidden from `list-elements` and cannot be inserted; existing ones can still be edited.
 - Uninstalling the plugin removes its setting and its post meta (snapshots), on every site of a network.
-- **Settings → Writing → AI page builder edits** decides which items can be edited: only drafts and pending items (default) or anything the user can edit. In drafts-only mode, published pages are changed through `create-draft-copy`.
+- **Settings → Uncode Builder Abilities** decides which items can be edited: only drafts and pending items (default) or anything the user can edit. In drafts-only mode, published pages are changed through `create-draft-copy`.
 
 ## Setup with Easy MCP AI
 
@@ -72,9 +72,18 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_page_options_available`, `uncode_builder_abilities_page_options` | Provide per-page settings for another theme (normalized fields: name, label, section, kind, options, default, visible_when). |
 | `uncode_builder_abilities_draft_copy_strategy` | `autosave` (native, default) or `rewrite_and_republish` (Yoast Duplicate Post) for create-draft-copy. |
 
-## Tests
+## Development
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+```bash
+composer install
+composer test   # PHPUnit unit tests (no WordPress or WPBakery needed)
+composer lint   # WordPress coding standards and PHP 7.4+ compatibility
+```
+
+- `tests/unit/` covers the logic that does not need a site: escaping and decoding, value validation and security rules, the shortcode parser and the element composer, against a small WPBakery map fixture.
+- `tests/integration/` holds WP-CLI suites (`wp eval-file tests/integration/write-test.php`, and `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`, `settings-test.php`) and Python MCP probes, run against a real WPBakery / Uncode site. They work on a draft page whose id is set at the top of each file; never point them at published content.
+- GitHub Actions lints every file on PHP 7.4–8.4, runs PHPCS and the unit tests, and builds the release ZIP (without development files) when a `v*` tag is pushed.
+- Translations live in `languages/`. Agent-facing ability descriptions stay in English; the interface is translated (Spanish included).
 
 ## License
 

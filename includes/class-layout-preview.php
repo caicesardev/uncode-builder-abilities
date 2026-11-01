@@ -43,7 +43,7 @@ final class Layout_Preview {
 
 		ob_start();
 		try {
-			$html = (string) apply_filters( 'the_content', $source );
+			$html = (string) apply_filters( 'the_content', $source ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
 		} finally {
 			$echoed = (string) ob_get_clean();
 			$post   = $previous; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
@@ -142,12 +142,18 @@ final class Layout_Preview {
 		}
 
 		$this->previous_heading = $level;
-		$this->add( array( 'heading' => $level, 'text' => self::excerpt( $text ) ) );
+		$this->add(
+			array(
+				'heading' => $level,
+				'text'    => self::excerpt( $text ),
+			)
+		);
 	}
 
 	private function link( DOMElement $element ): void {
 		$href = trim( $element->getAttribute( 'href' ) );
-		$text = self::text_of( $element ) ?: trim( $element->getAttribute( 'aria-label' ) );
+		$text = self::text_of( $element );
+		$text = '' === $text ? trim( $element->getAttribute( 'aria-label' ) ) : $text;
 
 		if ( '' === $href || '#' === $href || preg_match( self::UNSAFE_HREF_PATTERN, $href ) ) {
 			$this->issues[] = sprintf( 'Link "%s" has no real destination (href "%s").', self::excerpt( $text ), $href );
@@ -156,16 +162,27 @@ final class Layout_Preview {
 			$this->issues[] = sprintf( 'Link to "%s" has no text or aria-label.', $href );
 		}
 
-		$this->add( array( 'link' => $href, 'text' => self::excerpt( $text ) ) );
+		$this->add(
+			array(
+				'link' => $href,
+				'text' => self::excerpt( $text ),
+			)
+		);
 	}
 
 	private function image( DOMElement $element ): void {
-		$src = $element->getAttribute( 'src' ) ?: $element->getAttribute( 'data-src' );
+		$src = $element->getAttribute( 'src' );
+		$src = '' === $src ? $element->getAttribute( 'data-src' ) : $src;
 		if ( ! $element->hasAttribute( 'alt' ) ) {
 			$this->issues[] = sprintf( 'Image "%s" has no alt attribute.', basename( (string) wp_parse_url( $src, PHP_URL_PATH ) ) );
 		}
 
-		$this->add( array( 'image' => $src, 'alt' => $element->getAttribute( 'alt' ) ) );
+		$this->add(
+			array(
+				'image' => $src,
+				'alt'   => $element->getAttribute( 'alt' ),
+			)
+		);
 	}
 
 	private function add( array $entry ): void {

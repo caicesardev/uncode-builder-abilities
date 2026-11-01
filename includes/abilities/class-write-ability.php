@@ -50,7 +50,7 @@ abstract class Write_Ability extends Ability {
 		if ( ! Write_Policy::allows( $post ) ) {
 			return new WP_Error(
 				'uncode_builder_drafts_only',
-				sprintf( 'This site only lets these abilities edit drafts, and "%s" is %s. Create a draft copy with create-draft-copy and edit that, or ask an administrator to allow it in Settings → Writing → AI page builder edits.', $post->post_title, $post->post_status ),
+				sprintf( 'This site only lets these abilities edit drafts, and "%s" is %s. Create a draft copy with create-draft-copy and edit that, or ask an administrator to allow it in Settings → Uncode Builder Abilities.', $post->post_title, $post->post_status ),
 				array( 'status' => 403 )
 			);
 		}
@@ -84,11 +84,24 @@ abstract class Write_Ability extends Ability {
 		$reply = $this->describe_edit( $document, $edit, $post );
 
 		if ( ! $reply['changed'] ) {
-			return array_merge( $reply, array( 'saved' => false, 'version' => $document->version() ) );
+			return array_merge(
+				$reply,
+				array(
+					'saved'   => false,
+					'version' => $document->version(),
+				)
+			);
 		}
 
 		if ( ! empty( $input['dry_run'] ) ) {
-			return array_merge( $reply, array( 'dry_run' => true, 'saved' => false, 'version' => $document->version() ) );
+			return array_merge(
+				$reply,
+				array(
+					'dry_run' => true,
+					'saved'   => false,
+					'version' => $document->version(),
+				)
+			);
 		}
 
 		$saved = $this->writer->commit( $post, $edit['content'], $this->qualified_name(), $meta );

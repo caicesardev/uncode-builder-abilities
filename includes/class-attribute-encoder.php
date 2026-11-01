@@ -47,7 +47,7 @@ final class Attribute_Encoder {
 			throw new InvalidArgumentException( self::RAW_CODE_REFUSAL );
 		}
 
-		return base64_encode( rawurlencode( $content ) );
+		return base64_encode( rawurlencode( $content ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- WPBakery stores raw HTML content as base64.
 	}
 
 	private function plain_value( array $param, $value ): string {
@@ -73,7 +73,7 @@ final class Attribute_Encoder {
 				if ( ! self::may_post_unfiltered() ) {
 					throw new InvalidArgumentException( self::RAW_CODE_REFUSAL );
 				}
-				return base64_encode( rawurlencode( self::text_value( $value ) ) );
+				return base64_encode( rawurlencode( self::text_value( $value ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- WPBakery stores raw HTML attributes as base64.
 			case 'design_css':
 				return is_array( $value ) ? self::design_css_value( $value ) : self::design_css_text( self::text_value( $value ) );
 			case 'attachment_id':

@@ -37,11 +37,17 @@ final class Plugin {
 		}
 
 		Uncode_Integration::register();
-		Write_Policy::register();
+		Settings_Page::register();
 		Draft_Copies::register();
+
+		add_action( 'init', array( __CLASS__, 'load_translations' ) );
 
 		add_action( 'wp_abilities_api_categories_init', array( __CLASS__, 'register_category' ) );
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'register_abilities' ) );
+	}
+
+	public static function load_translations(): void {
+		load_plugin_textdomain( 'uncode-builder-abilities', false, dirname( plugin_basename( UNCODE_BUILDER_ABILITIES_FILE ) ) . '/languages' );
 	}
 
 	public static function register_category(): void {

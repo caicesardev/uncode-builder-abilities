@@ -78,9 +78,9 @@ final class Layout_Operations {
 			return self::invalid( $composed['errors'] );
 		}
 
-		$offset  = $document->insertion_offset( $parent_path, $index );
-		$focus   = array();
-		$cursor  = $offset;
+		$offset = $document->insertion_offset( $parent_path, $index );
+		$focus  = array();
+		$cursor = $offset;
 		foreach ( $composed['shortcodes'] as $shortcode ) {
 			$focus[] = $cursor;
 			$cursor += strlen( $shortcode );
@@ -152,7 +152,14 @@ final class Layout_Operations {
 
 		$violation = $this->nesting->violation( $parent_tag, $node['tag'] );
 		if ( null !== $violation ) {
-			return self::invalid( array( array( 'at' => 'to_parent_path', 'message' => $violation ) ) );
+			return self::invalid(
+				array(
+					array(
+						'at'      => 'to_parent_path',
+						'message' => $violation,
+					),
+				)
+			);
 		}
 
 		$source  = $node[ Shortcode_Parser::SOURCE_KEY ];

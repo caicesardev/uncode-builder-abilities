@@ -1,0 +1,286 @@
+# Copyright (C) 2026 caicesardev
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Uncode Builder Abilities 0.10.0\n"
+"Report-Msgid-Bugs-To: https://caicesardev.com\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-01T14:20:52+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: uncode-builder-abilities\n"
+
+#. Plugin Name of the plugin
+#: uncode-builder-abilities.php
+#: includes/class-settings-page.php:47
+#: includes/class-settings-page.php:48
+msgid "Uncode Builder Abilities"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: uncode-builder-abilities.php
+msgid "https://caicesardev.com"
+msgstr ""
+
+#. Description of the plugin
+#: uncode-builder-abilities.php
+msgid "Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href=\"https://caicesardev.com\">caicesardev</a>."
+msgstr ""
+
+#. Author of the plugin
+#: uncode-builder-abilities.php
+msgid "caicesardev"
+msgstr ""
+
+#: includes/abilities/class-create-draft-copy.php:53
+msgid "Create a draft copy of a published page"
+msgstr ""
+
+#: includes/abilities/class-create-draft-copy.php:57
+msgid "Creates a draft copy of a published page, post or content block so its layout can be changed without touching the live version. By default it is a native WordPress autosave of the item (its unpublished changes, which a person previews and restores from the editor); when the Yoast Duplicate Post plugin is active it is a \"Rewrite & Republish\" copy instead (a person clicks Republish to merge it). If the item already has a current copy, that copy is returned instead of creating another. Returns `copy_id` (use it as `post_id` with get-page-tree and the edit abilities), the `strategy` used and `how_to_apply`. The original is never modified."
+msgstr ""
+
+#: includes/abilities/class-get-design-tokens.php:35
+msgid "Get the site design tokens"
+msgstr ""
+
+#: includes/abilities/class-get-design-tokens.php:39
+msgid "Returns the design tokens of the site as the page builder knows them: colour palette, font families, font sizes, weights, line heights and letter spacings, each with the `value` to put in element parameters, its `label` and, when the theme exposes it, what it `resolves_to` (hex colour, pixel size, font stack). Read it once per session: get-element-schema refers to these sets with `options_ref: \"design_tokens.<set>\"` instead of repeating them. Prefer these tokens over raw colours or sizes so pages follow the site style."
+msgstr ""
+
+#: includes/abilities/class-get-element-schema.php:125
+msgid "Get a page builder element schema"
+msgstr ""
+
+#: includes/abilities/class-get-element-schema.php:129
+msgid "Returns the parameters of one WPBakery / Uncode element: name, normalized `kind`, label, default, allowed `options`, numeric bounds, `visible_when` (the parameter only applies when another one has those values) and `active_when` (Uncode colour parameters that only apply in one colour mode). Elements can have 200+ parameters, so the reply always includes `groups`, an index of every parameter name by group, and details only for part of them: the \"General\" group by default, another group with `group` (for example \"Style\", \"Responsive\" or \"Animation\"), or exactly the parameters you name in `params` (any group) — use the index to pick them instead of asking for everything. The reply is compact: long option lists that match a design token set come as `options_ref: \"design_tokens.<set>\"` (read them once with get-design-tokens), lists repeated inside the reply come as `options_ref: \"params.<name>\"` (same options as that parameter), the raw builder `type` is only kept when `kind` is unknown, and editor-only parameters are left out. `include_descriptions` adds the help text."
+msgstr ""
+
+#: includes/abilities/class-get-page-options.php:93
+msgid "Read page options (Uncode page settings)"
+msgstr ""
+
+#: includes/abilities/class-get-page-options.php:97
+msgid "Reads the per-page settings of the theme that live outside the layout (with Uncode: header type and size, menu transparency, page width, content and footer blocks, sidebar, scroll effects…). These are settings of this item only, not the global theme options. The reply lists every option name by section in `sections`, the values stored for this item in `values` (missing ones inherit the theme defaults), and the definition of one section (the first by default, or `section`), of the options named in `fields`, or of those whose name, label or section contain every word of `search` (for example \"menu transparency\" or \"width\"): kind, allowed `options`, `default` and `visible_when` (the option only applies when other options have those values). Change them with update-page-options using the same `version`. For an autosave copy the values shown are those of the published item."
+msgstr ""
+
+#: includes/abilities/class-get-page-tree.php:82
+msgid "Read a page layout (WPBakery / Uncode page builder)"
+msgstr ""
+
+#: includes/abilities/class-get-page-tree.php:86
+msgid "Start here to read or change any page, post or content block built with the WPBakery / Uncode page builder; prefer it, and the uncode-builder-edit abilities, over generic page or layout tools, which do not know the Uncode elements. Reads the item and returns its layout as a tree, plus the `version` that every change must send back. Published items cannot be edited directly while the site only allows drafts: call create-draft-copy and edit the copy. Every node has a `path` (\"0.1.2\": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a draft copy from create-draft-copy (edit that one). Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item."
+msgstr ""
+
+#: includes/abilities/class-get-template.php:51
+msgid "Get a page builder template"
+msgstr ""
+
+#: includes/abilities/class-get-template.php:55
+msgid "Returns one template from list-templates as a layout tree, in the same format as get-page-tree (paths, tags, attributes, content), so you can see its structure and texts before inserting it with insert-template (or before rebuilding it with insert-elements to set your texts in one call). Templates are already adapted to the site typography and palette; `warnings` lists any value that still is not one of the site options. `decode: true` adds decoded copies of encoded attributes."
+msgstr ""
+
+#: includes/abilities/class-insert-elements.php:26
+msgid "Insert page builder elements"
+msgstr ""
+
+#: includes/abilities/class-insert-elements.php:30
+msgid "Inserts one or more WPBakery / Uncode elements, with their children, into a page. Each element is { tag, attributes?: { parameter: value }, content?: string, children?: [elements] }. Parameters and allowed values come from get-element-schema; structured values can be sent as JSON (links as { url, title, target, rel }, gradients, design CSS as { declarations: { \"margin-top\": \"10px\" } }, parameter groups) and are encoded the way WPBakery stores them. Unique IDs (uncode_shortcode_id, tab_id) are generated when left out. `parent_path` is the container to insert into (leave it out for the top level of the page, where only rows and sections go); `index` is the position among its children (default: at the end). Everything is validated first: unknown parameters, values outside the options and wrong nesting refuse the whole call. Requires the `version` from get-page-tree; use `dry_run` to preview. The previous content is kept as a snapshot that restore-snapshot brings back."
+msgstr ""
+
+#: includes/abilities/class-insert-template.php:53
+msgid "Insert a page builder template"
+msgstr ""
+
+#: includes/abilities/class-insert-template.php:57
+msgid "Inserts a template from list-templates into a page, as it is designed: missing unique ids are generated and ids already used on the page are replaced, and nesting rules are checked. `parent_path` is the container to insert into (leave it out for the top level, where most templates go); `index` is the position among its children (default: at the end). Then adapt the placeholder texts, links and images with update-element (read the new section with get-page-tree and its `path`). When you would change most of its texts, it is shorter to read it with get-template and send it, already adapted, to insert-elements in a single call. Requires the `version` from get-page-tree; use `dry_run` to preview."
+msgstr ""
+
+#: includes/abilities/class-list-content-blocks.php:54
+msgid "List Uncode content blocks"
+msgstr ""
+
+#: includes/abilities/class-list-content-blocks.php:58
+msgid "Lists the Uncode content blocks: reusable sections (headers, footers, call to actions…) built with the page builder. Reuse one on a page by inserting { tag: \"uncode_block\", attributes: { id: \"<block id>\" } } with insert-elements, or read and edit the block itself with get-page-tree and the edit abilities using its id as `post_id` (every page that shows it changes too). Filter with `search`."
+msgstr ""
+
+#: includes/abilities/class-list-elements.php:41
+msgid "List page builder elements"
+msgstr ""
+
+#: includes/abilities/class-list-elements.php:45
+msgid "Lists the WPBakery / Uncode elements (shortcodes) registered on this site: tag, name, categories, whether it is a container, which children or parents it accepts, and whether it can be inserted on its own. Filter with `search` (tag, name or description) or `category`. Elements the theme retires from its editor are hidden unless `include_deprecated` is true; they report `use_instead` and cannot be inserted. Workflow for building or changing a page: 1) get-design-tokens once, to use the site colours, fonts and sizes instead of raw values; 2) list-elements to choose elements; 3) get-element-schema per element, one group at a time; 4) get-page-tree for the `version` and paths; 5) the uncode-builder-edit abilities with `dry_run: true`, then for real."
+msgstr ""
+
+#: includes/abilities/class-list-templates.php:70
+msgid "List page builder templates"
+msgstr ""
+
+#: includes/abilities/class-list-templates.php:74
+msgid "Lists ready-made sections from the page builder template library: WPBakery default templates (with Uncode, its 900+ wireframes: headers, contents, call to actions, pricing tables, team members, footers…) and templates saved by the site users. Without filters it returns only the categories and their counts; send `category` and/or `search` (matches name and category, and understands common words such as hero, cta, testimonials, team, faq, pricing, features or contact) to get templates with their `id`, a thumbnail `image` and size. Read one with get-template and insert it with insert-template, then adapt its texts and images with update-element. Starting from a template gives better designed sections than composing them element by element."
+msgstr ""
+
+#: includes/abilities/class-move-element.php:31
+msgid "Move a page builder element"
+msgstr ""
+
+#: includes/abilities/class-move-element.php:35
+msgid "Moves one element (with everything inside it), chosen by `path` or `id`, into the container at `to_parent_path` (\"\" for the top level), before the child at `index` as the page is now (default: at the end). Nesting rules are checked. Requires the `version` from get-page-tree; use `dry_run` to preview."
+msgstr ""
+
+#: includes/abilities/class-remove-element.php:30
+msgid "Remove a page builder element"
+msgstr ""
+
+#: includes/abilities/class-remove-element.php:34
+msgid "Removes one element and everything inside it, chosen by `path` or `id` from get-page-tree. `expect_tag` is required so the wrong element is never removed. Requires the `version` from get-page-tree; use `dry_run` to preview. The previous content is kept as a snapshot that restore-snapshot brings back."
+msgstr ""
+
+#: includes/abilities/class-render-preview.php:86
+msgid "Render a page preview (WPBakery / Uncode page builder)"
+msgstr ""
+
+#: includes/abilities/class-render-preview.php:90
+msgid "You cannot see pages, so use this to check what a layout actually renders after changing it. Renders the item, or only the element at `path` with everything inside it, the way the site does, and returns a readable outline (headings with their level, text excerpts, links with their destination, buttons, images with their alt text), `issues` found (heading levels that jump, empty headings, links without a real destination or text, images without alt), `unrendered_shortcodes` (builder code that did not turn into HTML, usually a wrong tag or nesting) and the `preview_url` a person can open. It does not change anything."
+msgstr ""
+
+#: includes/abilities/class-restore-snapshot.php:47
+msgid "Restore the last layout snapshot"
+msgstr ""
+
+#: includes/abilities/class-restore-snapshot.php:51
+msgid "Puts back the layout, and the page options changed with update-page-options, as they were before the last change made with these abilities. The layout being replaced becomes the new snapshot, so calling it again undoes the restore. get-page-tree lists the snapshots kept for an item (one by default). Requires the `version` from get-page-tree; use `dry_run` to preview."
+msgstr ""
+
+#: includes/abilities/class-update-element.php:37
+msgid "Update a page builder element"
+msgstr ""
+
+#: includes/abilities/class-update-element.php:41
+msgid "Changes the parameters and/or the text content of one element, chosen by `path` or `id` from get-page-tree. `attributes` sets parameters (a null value removes one, going back to its default); the rest of the element and of the page stay byte for byte as they were. `content` replaces the inner HTML of non-container elements. Values are validated against get-element-schema. Requires the `version` from get-page-tree; use `dry_run` to preview and `expect_tag` to make sure the right element is changed."
+msgstr ""
+
+#: includes/abilities/class-update-page-options.php:60
+msgid "Update page options (Uncode page settings)"
+msgstr ""
+
+#: includes/abilities/class-update-page-options.php:64
+msgid "Changes per-page settings read with get-page-options (header, menu, width, content blocks, sidebar, scroll…) of one item; it never touches the global theme options. `options` maps option names to values: select-like options take one of their `options` values, toggles \"on\"/\"off\", measurements \"1200px\" or [1200, \"px\"], colours a palette value from get-design-tokens, backgrounds an object of background-color, background-image (attachment ID or URL), background-repeat, background-attachment, background-position and background-size. A null value removes the setting so the item inherits the theme default again. Everything is validated first; the previous values are kept as a snapshot that restore-snapshot brings back. Requires the `version` from get-page-tree or get-page-options; use `dry_run` to preview. Not available on autosave copies, which cannot hold settings."
+msgstr ""
+
+#: includes/class-plugin.php:57
+msgid "Page builder (WPBakery / Uncode)"
+msgstr ""
+
+#: includes/class-plugin.php:58
+msgid "Read and compose page layouts built with WPBakery Page Builder and the Uncode theme."
+msgstr ""
+
+#: includes/class-plugin.php:115
+msgid "Uncode Builder Abilities needs the WordPress Abilities API (WordPress 6.9 or later). Its abilities are not registered."
+msgstr ""
+
+#: includes/class-settings-page.php:57
+msgid "Settings"
+msgstr ""
+
+#: includes/class-settings-page.php:91
+msgid "Safety"
+msgstr ""
+
+#: includes/class-settings-page.php:92
+msgid "Items AI agents may change"
+msgstr ""
+
+#: includes/class-settings-page.php:93
+msgid "Snapshots kept per item"
+msgstr ""
+
+#: includes/class-settings-page.php:95
+msgid "Draft copies of published items"
+msgstr ""
+
+#: includes/class-settings-page.php:96
+msgid "How copies are made"
+msgstr ""
+
+#: includes/class-settings-page.php:108
+msgid "These abilities let AI agents read and compose WPBakery / Uncode layouts through any MCP transport that publishes WordPress Abilities. Every change is validated against the page builder and can be undone with restore-snapshot."
+msgstr ""
+
+#: includes/class-settings-page.php:123
+msgid "In drafts-only mode agents change published pages by creating a draft copy that a person reviews and applies."
+msgstr ""
+
+#: includes/class-settings-page.php:134
+msgid "Previous versions stored per item for restore-snapshot, independent of WordPress revisions."
+msgstr ""
+
+#: includes/class-settings-page.php:143
+msgid "Yoast Duplicate Post is active, so the automatic choice uses its Rewrite & Republish copies."
+msgstr ""
+
+#: includes/class-settings-page.php:144
+msgid "Yoast Duplicate Post is not active, so copies are native WordPress autosaves."
+msgstr ""
+
+#: includes/class-settings-page.php:154
+msgid "Status"
+msgstr ""
+
+#: includes/class-settings-page.php:156
+msgid "WordPress Abilities API"
+msgstr ""
+
+#: includes/class-settings-page.php:157
+msgid "WPBakery Page Builder"
+msgstr ""
+
+#: includes/class-settings-page.php:158
+msgid "Uncode theme layer"
+msgstr ""
+
+#: includes/class-settings-page.php:159
+msgid "Yoast Duplicate Post"
+msgstr ""
+
+#: includes/class-settings-page.php:162
+msgid "Registered abilities"
+msgstr ""
+
+#: includes/class-settings-page.php:163
+msgid "Enable them in your MCP transport (for example in Easy MCP AI) so agents can use them. Abilities added by a new version of this plugin must be enabled there too."
+msgstr ""
+
+#: includes/class-settings-page.php:175
+msgid "Active"
+msgstr ""
+
+#: includes/class-settings-page.php:175
+msgid "Not detected"
+msgstr ""
+
+#: includes/class-settings-page.php:189
+msgid "Automatic: Rewrite & Republish when available, otherwise a native autosave"
+msgstr ""
+
+#: includes/class-settings-page.php:190
+msgid "Always a native WordPress autosave"
+msgstr ""
+
+#: includes/class-settings-page.php:191
+msgid "Rewrite & Republish (Yoast Duplicate Post) when available"
+msgstr ""
+
+#: includes/class-write-policy.php:21
+msgid "Only drafts, pending items and draft copies (recommended)"
+msgstr ""
+
+#: includes/class-write-policy.php:22
+msgid "Any item the user can edit, including published pages"
+msgstr ""

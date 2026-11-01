@@ -50,7 +50,7 @@ final class Uncode_Page_Options {
 		foreach ( self::raw_fields() as $raw ) {
 			$type = (string) ( $raw['type'] ?? '' );
 			if ( self::SECTION_TYPE === $type ) {
-				$section = Param_Normalizer::plain_text( $raw['label'] ?? '' ) ?: $section;
+				$section = Param_Normalizer::plain_text_or( $raw['label'] ?? '', $section );
 				continue;
 			}
 			if ( empty( $raw['id'] ) || ! isset( self::KINDS[ $type ] ) ) {

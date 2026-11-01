@@ -39,7 +39,7 @@ final class Draft_Copies {
 	}
 
 	public static function is_layout_target( WP_Post $post ): bool {
-		return 'revision' !== $post->post_type || ( self::is_autosave( $post ) && (int) $post->post_author === get_current_user_id() );
+		return 'revision' !== $post->post_type || ( self::is_autosave( $post ) && get_current_user_id() === (int) $post->post_author );
 	}
 
 	public static function permission_target_id( WP_Post $post ): int {
@@ -67,7 +67,9 @@ final class Draft_Copies {
 		}
 
 		$rewrite_available = $this->can_rewrite_and_republish( $original ) || $this->has_rewrite_copy( $original );
-		$strategy          = (string) apply_filters( 'uncode_builder_abilities_draft_copy_strategy', $rewrite_available ? self::STRATEGY_REWRITE : self::STRATEGY_AUTOSAVE, $original );
+		$configured        = Settings_Page::draft_copy_strategy();
+		$preferred         = Settings_Page::AUTOMATIC_STRATEGY === $configured ? self::STRATEGY_REWRITE : $configured;
+		$strategy          = (string) apply_filters( 'uncode_builder_abilities_draft_copy_strategy', $rewrite_available && self::STRATEGY_REWRITE === $preferred ? self::STRATEGY_REWRITE : self::STRATEGY_AUTOSAVE, $original );
 
 		return self::STRATEGY_REWRITE === $strategy && $rewrite_available ? $this->rewrite_copy( $original ) : $this->autosave_copy( $original );
 	}
@@ -83,7 +85,12 @@ final class Draft_Copies {
 		}
 
 		if ( self::REWRITE_COPY_STATUS !== get_post_status( $copy_id ) ) {
-			wp_update_post( array( 'ID' => $copy_id, 'post_status' => self::REWRITE_COPY_STATUS ) );
+			wp_update_post(
+				array(
+					'ID'          => $copy_id,
+					'post_status' => self::REWRITE_COPY_STATUS,
+				)
+			);
 		}
 
 		return $this->reply( $original, get_post( $copy_id ), self::STRATEGY_REWRITE, false );

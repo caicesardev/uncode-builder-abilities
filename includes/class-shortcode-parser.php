@@ -86,14 +86,14 @@ final class Shortcode_Parser {
 		return array_merge( $nodes, self::text_nodes( substr( $content, $cursor ), self::child_path( $parent_path, count( $nodes ) ), $base + $cursor ) );
 	}
 
-	private function element_node( array $match, int $base, array $tags, string $path, bool $decode ): array {
+	private function element_node( array $shortcode_match, int $base, array $tags, string $path, bool $decode ): array {
 		++$this->element_count;
 
-		$tag        = $match[2][0];
-		$start      = $base + $match[0][1];
-		$has_inner  = isset( $match[5] ) && -1 !== $match[5][1];
-		$inner      = $has_inner ? $match[5][0] : null;
-		$attributes = shortcode_parse_atts( $match[3][0] );
+		$tag        = $shortcode_match[2][0];
+		$start      = $base + $shortcode_match[0][1];
+		$has_inner  = isset( $shortcode_match[5] ) && -1 !== $shortcode_match[5][1];
+		$inner      = $has_inner ? $shortcode_match[5][0] : null;
+		$attributes = shortcode_parse_atts( $shortcode_match[3][0] );
 		$attributes = is_array( $attributes ) ? array_map( 'strval', $attributes ) : array();
 		$known      = $this->catalog->has( $tag );
 
@@ -120,15 +120,15 @@ final class Shortcode_Parser {
 			}
 		}
 
-		$inner_start = $has_inner ? $base + $match[5][1] : null;
-		$end         = $start + strlen( $match[0][0] );
+		$inner_start = $has_inner ? $base + $shortcode_match[5][1] : null;
+		$end         = $start + strlen( $shortcode_match[0][0] );
 
 		$node[ self::SOURCE_KEY ] = array(
 			'start'           => $start,
 			'end'             => $end,
 			'inner_start'     => $inner_start,
 			'inner_end'       => $has_inner ? $inner_start + strlen( $inner ) : null,
-			'attributes_text' => $match[3][0],
+			'attributes_text' => $shortcode_match[3][0],
 		);
 
 		if ( null === $inner ) {
@@ -199,10 +199,10 @@ final class Shortcode_Parser {
 		return null;
 	}
 
-	private static function first_filled_group( array $match, array $groups ): string {
+	private static function first_filled_group( array $captures, array $groups ): string {
 		foreach ( $groups as $group ) {
-			if ( isset( $match[ $group ] ) && '' !== $match[ $group ] ) {
-				return $match[ $group ];
+			if ( isset( $captures[ $group ] ) && '' !== $captures[ $group ] ) {
+				return $captures[ $group ];
 			}
 		}
 
