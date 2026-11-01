@@ -12,3 +12,4 @@ composer.lock
 phpunit.xml.dist
 phpcs.xml.dist
 README.md
+/build
