@@ -54,6 +54,8 @@ final class Template_Library {
 			return array();
 		}
 
+		do_action( 'uncode_builder_abilities_before_load_templates' );
+
 		$templates = array();
 		foreach ( (array) visual_composer()->templatesPanelEditor()->loadDefaultTemplates() as $template ) {
 			if ( empty( $template['content'] ) ) {

@@ -62,6 +62,7 @@ final class Plugin {
 		$writer     = new Layout_Writer( $snapshots );
 		$tokens     = new Design_Tokens( $catalog );
 		$templates  = new Template_Library();
+		$checker    = new Option_Checker( $catalog, $parser );
 
 		$abilities = array(
 			new List_Elements( $catalog ),
@@ -69,9 +70,9 @@ final class Plugin {
 			new Get_Design_Tokens( $tokens ),
 			new Get_Page_Tree( $parser, $snapshots ),
 			new List_Templates( $templates ),
-			new Get_Template( $templates, $parser ),
+			new Get_Template( $templates, $parser, $checker ),
 			new Insert_Elements( $parser, $operations, $writer ),
-			new Insert_Template( $parser, $operations, $writer, $templates ),
+			new Insert_Template( $parser, $operations, $writer, $templates, $checker ),
 			new Update_Element( $parser, $operations, $writer ),
 			new Move_Element( $parser, $operations, $writer ),
 			new Remove_Element( $parser, $operations, $writer ),

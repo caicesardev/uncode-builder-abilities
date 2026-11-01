@@ -5,6 +5,7 @@ namespace Uncode_Builder_Abilities\Abilities;
 use Uncode_Builder_Abilities\Layout_Document;
 use Uncode_Builder_Abilities\Layout_Operations;
 use Uncode_Builder_Abilities\Layout_Writer;
+use Uncode_Builder_Abilities\Option_Checker;
 use Uncode_Builder_Abilities\Shortcode_Parser;
 use Uncode_Builder_Abilities\Template_Library;
 use WP_Error;
@@ -16,9 +17,12 @@ final class Insert_Template extends Write_Ability {
 
 	private Template_Library $library;
 
-	public function __construct( Shortcode_Parser $parser, Layout_Operations $operations, Layout_Writer $writer, Template_Library $library ) {
+	private Option_Checker $checker;
+
+	public function __construct( Shortcode_Parser $parser, Layout_Operations $operations, Layout_Writer $writer, Template_Library $library, Option_Checker $checker ) {
 		parent::__construct( $parser, $operations, $writer );
 		$this->library = $library;
+		$this->checker = $checker;
 	}
 
 	public function name(): string {
@@ -31,12 +35,18 @@ final class Insert_Template extends Write_Ability {
 			return new WP_Error( 'uncode_builder_template_not_found', 'There is no template with that id. Use list-templates to find one.', array( 'status' => 404 ) );
 		}
 
-		return $this->operations->insert_source(
+		$edit = $this->operations->insert_source(
 			$document,
 			(string) ( $input['parent_path'] ?? Layout_Document::ROOT_PATH ),
 			isset( $input['index'] ) ? (int) $input['index'] : null,
 			$template['content']
 		);
+
+		if ( ! is_wp_error( $edit ) ) {
+			$edit['warnings'] = $this->checker->mismatches( $template['content'] );
+		}
+
+		return $edit;
 	}
 
 	protected function label(): string {

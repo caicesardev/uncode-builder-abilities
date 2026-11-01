@@ -51,6 +51,10 @@ foreach ( $icons['templates'] as $candidate ) {
 $template = uba_run( 'uncode-builder/get-template', array( 'id' => $template_id ) );
 uba_check( 'get-template Icon Left', ! is_wp_error( $template ) && $template['element_count'] > 5, is_wp_error( $template ) ? $template->get_error_message() : array( 'id' => $template_id, 'elementos' => $template['element_count'], 'tamaño' => uba_size( $template ), 'raíz' => array_column( $template['tree'], 'tag' ) ) );
 
+$wide     = uba_run( 'uncode-builder/get-template', array( 'id' => 'default:pricing-table-wide' ) );
+$wide_raw = wp_json_encode( $wide['tree'] ?? array() );
+uba_check( 'plantilla adaptada a la tipografía del sitio', ! is_wp_error( $wide ) && false === strpos( $wide_raw, 'fontsize-155944' ) && empty( $wide['warnings'] ), is_wp_error( $wide ) ? $wide->get_error_message() : array( 'avisos' => $wide['warnings'] ?? array() ) );
+
 $missing = uba_run( 'uncode-builder/get-template', array( 'id' => 'default:no-existe' ) );
 uba_check( 'plantilla inexistente', is_wp_error( $missing ) );
 

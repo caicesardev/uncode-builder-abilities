@@ -63,6 +63,14 @@ final class Uncode_Integration {
 		add_filter( 'uncode_builder_abilities_token_sources', array( __CLASS__, 'add_token_sources' ) );
 		add_filter( 'uncode_builder_abilities_design_token', array( __CLASS__, 'resolve_token' ), 10, 2 );
 		add_filter( 'uncode_builder_abilities_abilities', array( __CLASS__, 'add_abilities' ) );
+		add_action( 'uncode_builder_abilities_before_load_templates', array( __CLASS__, 'adapt_wireframes_to_site' ) );
+	}
+
+	public static function adapt_wireframes_to_site(): void {
+		$wireframes_available = function_exists( 'uncode_wf_initialize_dynamic_class' ) && class_exists( 'UNCDWF_Dynamic' );
+		if ( $wireframes_available && ! \UNCDWF_Dynamic::is_init() ) {
+			uncode_wf_initialize_dynamic_class();
+		}
 	}
 
 	public static function add_token_sources( array $sources ): array {
