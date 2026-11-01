@@ -3,7 +3,7 @@
  * Plugin Name:       Uncode Builder Abilities
  * Plugin URI:        https://caicesardev.com
  * Description:       Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href="https://caicesardev.com">caicesardev</a>.
- * Version:           0.9.1
+ * Version:           0.10.0
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Author:            caicesardev
@@ -11,11 +11,14 @@
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       uncode-builder-abilities
+ * Domain Path:       /languages
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UNCODE_BUILDER_ABILITIES_VERSION', '0.9.1' );
+define( 'UNCODE_BUILDER_ABILITIES_VERSION', '0.10.0' );
+
+define( 'UNCODE_BUILDER_ABILITIES_FILE', __FILE__ );
 
 require_once __DIR__ . '/includes/class-plugin.php';
 require_once __DIR__ . '/includes/class-builder-escaping.php';
@@ -34,6 +37,7 @@ require_once __DIR__ . '/includes/class-layout-operations.php';
 require_once __DIR__ . '/includes/class-snapshot-store.php';
 require_once __DIR__ . '/includes/class-layout-writer.php';
 require_once __DIR__ . '/includes/class-write-policy.php';
+require_once __DIR__ . '/includes/class-settings-page.php';
 require_once __DIR__ . '/includes/class-template-library.php';
 require_once __DIR__ . '/includes/class-option-checker.php';
 require_once __DIR__ . '/includes/class-draft-copies.php';

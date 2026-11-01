@@ -67,7 +67,9 @@ final class Draft_Copies {
 		}
 
 		$rewrite_available = $this->can_rewrite_and_republish( $original ) || $this->has_rewrite_copy( $original );
-		$strategy          = (string) apply_filters( 'uncode_builder_abilities_draft_copy_strategy', $rewrite_available ? self::STRATEGY_REWRITE : self::STRATEGY_AUTOSAVE, $original );
+		$configured        = Settings_Page::draft_copy_strategy();
+		$preferred         = Settings_Page::AUTOMATIC_STRATEGY === $configured ? self::STRATEGY_REWRITE : $configured;
+		$strategy          = (string) apply_filters( 'uncode_builder_abilities_draft_copy_strategy', $rewrite_available && self::STRATEGY_REWRITE === $preferred ? self::STRATEGY_REWRITE : self::STRATEGY_AUTOSAVE, $original );
 
 		return self::STRATEGY_REWRITE === $strategy && $rewrite_available ? $this->rewrite_copy( $original ) : $this->autosave_copy( $original );
 	}

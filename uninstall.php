@@ -2,7 +2,7 @@
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-const UNCODE_BUILDER_ABILITIES_OPTIONS = array( 'uncode_builder_abilities_write_policy' );
+const UNCODE_BUILDER_ABILITIES_OPTIONS = array( 'uncode_builder_abilities_write_policy', 'uncode_builder_abilities_snapshot_limit', 'uncode_builder_abilities_draft_copy_strategy' );
 
 const UNCODE_BUILDER_ABILITIES_POST_META = array( '_uncode_builder_abilities_snapshots', '_uncode_builder_abilities_copy_of' );
 

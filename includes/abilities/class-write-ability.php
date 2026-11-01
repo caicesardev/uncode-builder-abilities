@@ -50,7 +50,7 @@ abstract class Write_Ability extends Ability {
 		if ( ! Write_Policy::allows( $post ) ) {
 			return new WP_Error(
 				'uncode_builder_drafts_only',
-				sprintf( 'This site only lets these abilities edit drafts, and "%s" is %s. Create a draft copy with create-draft-copy and edit that, or ask an administrator to allow it in Settings → Writing → AI page builder edits.', $post->post_title, $post->post_status ),
+				sprintf( 'This site only lets these abilities edit drafts, and "%s" is %s. Create a draft copy with create-draft-copy and edit that, or ask an administrator to allow it in Settings → Uncode Builder Abilities.', $post->post_title, $post->post_status ),
 				array( 'status' => 403 )
 			);
 		}

@@ -13,7 +13,7 @@ final class Snapshot_Store {
 	const DEFAULT_LIMIT = 1;
 
 	public function push( WP_Post $post, string $reason, array $meta_keys = array() ): void {
-		$limit = max( 1, (int) apply_filters( 'uncode_builder_abilities_snapshot_limit', self::DEFAULT_LIMIT, $post ) );
+		$limit = max( 1, (int) apply_filters( 'uncode_builder_abilities_snapshot_limit', Settings_Page::snapshot_limit(), $post ) );
 
 		$snapshot = array(
 			'content'  => $post->post_content,
