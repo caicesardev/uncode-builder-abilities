@@ -105,7 +105,8 @@ final class Template_Library {
 			}
 
 			$classes  = preg_split( '/\s+/', trim( (string) ( $template['custom_class'] ?? '' ) ) );
-			$category = sanitize_key( $classes[0] ?? '' ) ?: self::UNCATEGORIZED;
+			$category = sanitize_key( $classes[0] ?? '' );
+			$category = '' === $category ? self::UNCATEGORIZED : $category;
 			$id       = self::unique_id( self::DEFAULT_PREFIX . sanitize_title( (string) ( $template['name'] ?? '' ) ), $templates );
 
 			$templates[ $id ] = array(

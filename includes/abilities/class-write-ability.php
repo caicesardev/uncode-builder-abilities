@@ -84,11 +84,24 @@ abstract class Write_Ability extends Ability {
 		$reply = $this->describe_edit( $document, $edit, $post );
 
 		if ( ! $reply['changed'] ) {
-			return array_merge( $reply, array( 'saved' => false, 'version' => $document->version() ) );
+			return array_merge(
+				$reply,
+				array(
+					'saved'   => false,
+					'version' => $document->version(),
+				)
+			);
 		}
 
 		if ( ! empty( $input['dry_run'] ) ) {
-			return array_merge( $reply, array( 'dry_run' => true, 'saved' => false, 'version' => $document->version() ) );
+			return array_merge(
+				$reply,
+				array(
+					'dry_run' => true,
+					'saved'   => false,
+					'version' => $document->version(),
+				)
+			);
 		}
 
 		$saved = $this->writer->commit( $post, $edit['content'], $this->qualified_name(), $meta );

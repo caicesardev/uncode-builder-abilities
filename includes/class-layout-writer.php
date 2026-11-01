@@ -33,7 +33,7 @@ final class Layout_Writer {
 		}
 
 		self::save_meta( $post->ID, $meta );
-		do_action( 'litespeed_purge_post', $post->ID );
+		do_action( 'litespeed_purge_post', $post->ID ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache hook.
 		do_action( 'uncode_builder_abilities_layout_saved', $post->ID, $reason );
 
 		$stored = (string) get_post_field( 'post_content', $post->ID, 'raw' );

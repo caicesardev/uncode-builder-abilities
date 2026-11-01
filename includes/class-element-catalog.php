@@ -196,7 +196,7 @@ final class Element_Catalog {
 
 		return array(
 			'tag'         => $tag,
-			'name'        => Param_Normalizer::plain_text( $element['name'] ?? '' ) ?: $tag,
+			'name'        => Param_Normalizer::plain_text_or( $element['name'] ?? '', $tag ),
 			'categories'  => self::categories_of( $element ),
 			'description' => Param_Normalizer::plain_text( $element['description'] ?? '' ),
 			'container'   => $this->is_container( $tag ),

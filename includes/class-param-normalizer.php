@@ -71,6 +71,12 @@ final class Param_Normalizer {
 		return trim( html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES, 'UTF-8' ) );
 	}
 
+	public static function plain_text_or( $value, string $fallback ): string {
+		$text = self::plain_text( $value );
+
+		return '' === $text ? $fallback : $text;
+	}
+
 	public static function options_from_value( $value ): array {
 		if ( ! is_array( $value ) ) {
 			return array();
@@ -106,7 +112,7 @@ final class Param_Normalizer {
 			'type'  => $type,
 			'kind'  => $kind,
 			'label' => self::plain_text( $param['heading'] ?? '' ),
-			'group' => self::plain_text( $param['group'] ?? '' ) ?: 'General',
+			'group' => self::plain_text_or( $param['group'] ?? '', 'General' ),
 		);
 
 		$default = $this->default_of( $param, $kind );

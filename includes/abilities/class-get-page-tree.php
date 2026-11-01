@@ -58,6 +58,8 @@ final class Get_Page_Tree extends Ability {
 			$parsed['tree'] = self::limited_to_depth( $parsed['tree'], max( 1, (int) $input['depth'] ) );
 		}
 
+		$draft_copy_id = Draft_Copies::existing_copy_id( $post );
+
 		return array_merge(
 			array(
 				'post'      => array(
@@ -68,7 +70,7 @@ final class Get_Page_Tree extends Ability {
 					'modified'      => $post->post_modified,
 					'builder'       => self::uses_builder( $post ) ? 'wpbakery' : 'none',
 					'content_bytes' => strlen( $post->post_content ),
-					'draft_copy_id' => Draft_Copies::existing_copy_id( $post ) ?: null,
+					'draft_copy_id' => $draft_copy_id > 0 ? $draft_copy_id : null,
 					'copy_of'       => Draft_Copies::is_autosave( $post ) ? (int) $post->post_parent : null,
 				),
 				'version'   => Layout_Document::version_of( $post->post_content ),

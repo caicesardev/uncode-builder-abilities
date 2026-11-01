@@ -21,8 +21,15 @@ if ( ! is_multisite() ) {
 	return;
 }
 
-foreach ( get_sites( array( 'fields' => 'ids', 'number' => 0 ) ) as $site_id ) {
-	switch_to_blog( $site_id );
+$uncode_builder_abilities_sites = get_sites(
+	array(
+		'fields' => 'ids',
+		'number' => 0,
+	)
+);
+
+foreach ( $uncode_builder_abilities_sites as $uncode_builder_abilities_site_id ) {
+	switch_to_blog( $uncode_builder_abilities_site_id );
 	uncode_builder_abilities_remove_site_data();
 	restore_current_blog();
 }
