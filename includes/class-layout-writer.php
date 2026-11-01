@@ -12,6 +12,8 @@ final class Layout_Writer {
 
 	const BUILDER_CSS_TYPES = array( 'default', 'custom' );
 
+	const EXCERPT_CONTEXT = 50;
+
 	private Snapshot_Store $snapshots;
 
 	public function __construct( Snapshot_Store $snapshots ) {
@@ -37,11 +39,34 @@ final class Layout_Writer {
 			'snapshots' => $this->snapshots->summaries( $post->ID ),
 		);
 
-		if ( $stored !== $content ) {
-			$reply['warnings'] = array( 'WordPress filters changed the content while saving it (for example markup this user may not publish). Read the page again before the next change.' );
+		if ( $stored === $content ) {
+			return $reply;
+		}
+
+		if ( self::tag_sequence( $stored ) === self::tag_sequence( $content ) ) {
+			$reply['notes'] = array(
+				sprintf(
+					'The theme normalized some attributes while saving, as its editor does (first change near "%s"). The structure and paths are unchanged and `version` already matches the saved layout.',
+					self::excerpt_at_first_difference( $stored, $content )
+				),
+			);
+		} else {
+			$reply['warnings'] = array( 'WordPress filters changed the layout structure while saving (for example markup this user may not publish). Read the page again before the next change.' );
 		}
 
 		return $reply;
+	}
+
+	private static function tag_sequence( string $content ): array {
+		preg_match_all( '/\[\/?([A-Za-z0-9_-]+)/', $content, $matches );
+
+		return $matches[1];
+	}
+
+	private static function excerpt_at_first_difference( string $stored, string $intended ): string {
+		$offset = strspn( $stored ^ $intended, "\0" );
+
+		return substr( $stored, max( 0, $offset - self::EXCERPT_CONTEXT ), 2 * self::EXCERPT_CONTEXT );
 	}
 
 	private static function save_content( int $post_id, string $content ) {

@@ -67,6 +67,18 @@ uba_check( 'plantilla dentro de una columna rechazada', is_wp_error( $into_colum
 
 $inserted = uba_run( 'uncode-builder-edit/insert-template', array( 'post_id' => PAGE_ID, 'version' => uba_version(), 'template' => $template_id ) );
 uba_check( 'insert-template guardado', ! is_wp_error( $inserted ) && ! empty( $inserted['saved'] ), is_wp_error( $inserted ) ? $inserted->get_error_message() : array( 'elements' => $inserted['elements'], 'ids generados' => count( $inserted['generated_ids'] ?? array() ) ) );
+uba_check( 'sin avisos de estructura (normalización solo como nota)', ! is_wp_error( $inserted ) && empty( $inserted['warnings'] ) && $inserted['version'] === md5( uba_content() ), $inserted['notes'] ?? 'sin notas' );
+
+$skeleton = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID, 'depth' => 1 ) );
+$full     = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID ) );
+uba_check( 'get-page-tree depth 1: solo filas', isset( $skeleton['tree'][0]['children_count'] ) && ! isset( $skeleton['tree'][0]['children'] ), uba_size( $skeleton ) . ' frente a ' . uba_size( $full ) );
+
+$row_path = $inserted['elements'][0]['path'];
+$subtree  = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID, 'path' => $row_path ) );
+uba_check( 'get-page-tree path: solo esa fila', 1 === count( $subtree['tree'] ) && $row_path === $subtree['tree'][0]['path'], uba_size( $subtree ) );
+
+$bad_path = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID, 'path' => '999' ) );
+uba_check( 'get-page-tree path inexistente', is_wp_error( $bad_path ) );
 uba_check( 'contenido previo intacto byte a byte', 0 === strpos( uba_content(), $original ) );
 
 $again = uba_run( 'uncode-builder-edit/insert-template', array( 'post_id' => PAGE_ID, 'version' => uba_version(), 'template' => $template_id ) );

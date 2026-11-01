@@ -41,8 +41,21 @@ final class Get_Page_Tree extends Ability {
 			return new WP_Error( 'uncode_builder_post_not_found', 'The post does not exist.', array( 'status' => 404 ) );
 		}
 
-		$parsed         = $this->parser->parse( $post->post_content, (bool) ( $input['decode'] ?? true ) );
+		$parsed = $this->parser->parse( $post->post_content, (bool) ( $input['decode'] ?? true ) );
+		$path   = (string) ( $input['path'] ?? Layout_Document::ROOT_PATH );
+
+		if ( Layout_Document::ROOT_PATH !== $path ) {
+			$node = ( new Layout_Document( $post->post_content, $parsed['tree'] ) )->node( $path );
+			if ( null === $node ) {
+				return new WP_Error( 'uncode_builder_path_not_found', sprintf( 'There is no element at path "%s".', $path ), array( 'status' => 404 ) );
+			}
+			$parsed['tree'] = array( $node );
+		}
+
 		$parsed['tree'] = Shortcode_Parser::without_source( $parsed['tree'] );
+		if ( isset( $input['depth'] ) ) {
+			$parsed['tree'] = self::limited_to_depth( $parsed['tree'], max( 1, (int) $input['depth'] ) );
+		}
 
 		return array_merge(
 			array(
@@ -67,7 +80,7 @@ final class Get_Page_Tree extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Reads a post, page or any other item built with WPBakery / Uncode and returns its layout as a tree, plus the `version` that every change must send back. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back. Requires permission to edit that item.', 'uncode-builder-abilities' );
+		return __( 'Reads a post, page or any other item built with WPBakery / Uncode and returns its layout as a tree, plus the `version` that every change must send back. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back. Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
@@ -83,9 +96,36 @@ final class Get_Page_Tree extends Ability {
 					'default'     => true,
 					'description' => 'Add decoded copies of encoded attributes.',
 				),
+				'path'    => array(
+					'type'        => 'string',
+					'description' => 'Only return the element at this path, such as "3" or "3.0.1", with everything inside it.',
+				),
+				'depth'   => array(
+					'type'        => 'integer',
+					'minimum'     => 1,
+					'description' => 'Levels of children to include; deeper containers only report `children_count`.',
+				),
 			),
 			'required'             => array( 'post_id' ),
 			'additionalProperties' => false,
+		);
+	}
+
+	private static function limited_to_depth( array $nodes, int $depth ): array {
+		return array_map(
+			static function ( array $node ) use ( $depth ): array {
+				if ( ! isset( $node['children'] ) ) {
+					return $node;
+				}
+				if ( $depth > 1 ) {
+					$node['children'] = self::limited_to_depth( $node['children'], $depth - 1 );
+					return $node;
+				}
+				$node['children_count'] = count( $node['children'] );
+				unset( $node['children'] );
+				return $node;
+			},
+			$nodes
 		);
 	}
 
