@@ -29,7 +29,7 @@ msgstr ""
 
 #. Description of the plugin
 #: uncode-builder-abilities.php
-msgid "Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href=\"https://caicesardev.com\">caicesardev</a>."
+msgid "Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport."
 msgstr ""
 
 #. Author of the plugin

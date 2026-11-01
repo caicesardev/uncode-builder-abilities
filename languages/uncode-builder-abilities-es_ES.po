@@ -31,8 +31,8 @@ msgstr ""
 
 #. Description of the plugin
 #: uncode-builder-abilities.php
-msgid "Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href=\"https://caicesardev.com\">caicesardev</a>."
-msgstr "Expone el catálogo de elementos y los layouts de WPBakery / Uncode como Abilities de WordPress (lectura y edición), listas para que cualquier transporte MCP las ofrezca a agentes de IA. Hecho por <a href=\"https://caicesardev.com\">caicesardev</a>."
+msgid "Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport."
+msgstr "Expone el catálogo de elementos y los layouts de WPBakery / Uncode como Abilities de WordPress (lectura y edición), listas para que cualquier transporte MCP las ofrezca a agentes de IA."
 
 #. Author of the plugin
 #: uncode-builder-abilities.php

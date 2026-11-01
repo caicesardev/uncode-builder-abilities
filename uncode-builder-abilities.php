@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Uncode Builder Abilities
  * Plugin URI:        https://caicesardev.com
- * Description:       Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href="https://caicesardev.com">caicesardev</a>.
+ * Description:       Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport.
  * Version:           0.10.1
  * Requires at least: 6.9
  * Requires PHP:      7.4
