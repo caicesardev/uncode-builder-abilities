@@ -3,6 +3,7 @@
 namespace Uncode_Builder_Abilities;
 
 use Uncode_Builder_Abilities\Abilities\Ability;
+use Uncode_Builder_Abilities\Abilities\Create_Draft_Copy;
 use Uncode_Builder_Abilities\Abilities\Get_Design_Tokens;
 use Uncode_Builder_Abilities\Abilities\Get_Element_Schema;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Tree;
@@ -34,6 +35,7 @@ final class Plugin {
 
 		Uncode_Integration::register();
 		Write_Policy::register();
+		Draft_Copies::register();
 
 		add_action( 'wp_abilities_api_categories_init', array( __CLASS__, 'register_category' ) );
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'register_abilities' ) );
@@ -77,6 +79,7 @@ final class Plugin {
 			new Move_Element( $parser, $operations, $writer ),
 			new Remove_Element( $parser, $operations, $writer ),
 			new Restore_Snapshot( $parser, $operations, $writer, $snapshots ),
+			new Create_Draft_Copy( new Draft_Copies() ),
 		);
 
 		foreach ( apply_filters( 'uncode_builder_abilities_abilities', $abilities, $catalog, $parser ) as $ability ) {

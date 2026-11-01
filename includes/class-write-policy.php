@@ -65,8 +65,12 @@ final class Write_Policy {
 	}
 
 	public static function allows( WP_Post $post ): bool {
-		$allowed = self::ANY_CONTENT === self::current() || in_array( $post->post_status, self::DRAFT_STATUSES, true );
+		$allowed = self::ANY_CONTENT === self::current() || self::is_draft( $post );
 
 		return (bool) apply_filters( 'uncode_builder_abilities_write_allowed', $allowed, $post );
+	}
+
+	public static function is_draft( WP_Post $post ): bool {
+		return in_array( $post->post_status, self::DRAFT_STATUSES, true );
 	}
 }

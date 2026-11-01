@@ -26,6 +26,7 @@ WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBa
 | `uncode-builder-edit/move-element` | edit | Move an element to another container. |
 | `uncode-builder-edit/remove-element` | edit | Remove an element (`expect_tag` required). |
 | `uncode-builder-edit/restore-snapshot` | edit | Undo the last change. |
+| `uncode-builder-edit/create-draft-copy` | edit | Draft copy of a published item to work on safely. With Yoast Duplicate Post it is a Rewrite & Republish copy: a person reviews it and clicks Republish. The original is never modified. |
 
 Reads and edits use separate namespaces, so a transport with per-namespace scopes can grant read-only access.
 
@@ -36,7 +37,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 - Values are validated against the live `vc_map` (parameter names, options, bounds, nesting) before anything is saved; `dry_run` previews the result.
 - Unique ids (`uncode_shortcode_id`, `tab_id`) are generated, WPBakery's custom CSS is rebuilt and LiteSpeed is purged after saving.
 - One snapshot per post is kept for `restore-snapshot`, without relying on WordPress revisions.
-- **Settings → Writing → AI page builder edits** decides which items can be edited: only drafts and pending items (default) or anything the user can edit.
+- **Settings → Writing → AI page builder edits** decides which items can be edited: only drafts and pending items (default) or anything the user can edit. In drafts-only mode, published pages are changed through `create-draft-copy`.
 
 ## Setup with Easy MCP AI
 
@@ -62,7 +63,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 
 ## Tests
 
-`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
+`tests/` holds WP-CLI suites (`wp eval-file tests/write-test.php`, `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`) and Python MCP probes. They work on a draft page whose id is set at the top of each file; never point them at published content.
 
 ## License
 

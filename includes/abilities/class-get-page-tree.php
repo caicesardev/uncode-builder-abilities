@@ -2,6 +2,7 @@
 
 namespace Uncode_Builder_Abilities\Abilities;
 
+use Uncode_Builder_Abilities\Draft_Copies;
 use Uncode_Builder_Abilities\Layout_Document;
 use Uncode_Builder_Abilities\Shortcode_Parser;
 use Uncode_Builder_Abilities\Snapshot_Store;
@@ -67,6 +68,7 @@ final class Get_Page_Tree extends Ability {
 					'modified'      => $post->post_modified,
 					'builder'       => self::uses_builder( $post ) ? 'wpbakery' : 'none',
 					'content_bytes' => strlen( $post->post_content ),
+					'draft_copy_id' => Draft_Copies::rewrite_copy_id( $post ) ?: null,
 				),
 				'version'   => Layout_Document::version_of( $post->post_content ),
 				'snapshots' => $this->snapshots->summaries( $post->ID ),
@@ -80,7 +82,7 @@ final class Get_Page_Tree extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Reads a post, page or any other item built with WPBakery / Uncode and returns its layout as a tree, plus the `version` that every change must send back. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back. Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
+		return __( 'Reads a post, page or any other item built with WPBakery / Uncode and returns its layout as a tree, plus the `version` that every change must send back. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a Rewrite & Republish copy (edit that one). Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {

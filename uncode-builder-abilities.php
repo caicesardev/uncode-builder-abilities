@@ -3,7 +3,7 @@
  * Plugin Name:       Uncode Builder Abilities
  * Plugin URI:        https://caicesardev.com
  * Description:       Exposes the WPBakery / Uncode element catalogue and page layouts as WordPress Abilities (read and edit), ready to be served to AI agents by any MCP transport. Made by <a href="https://caicesardev.com">caicesardev</a>.
- * Version:           0.5.2
+ * Version:           0.6.0
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Author:            caicesardev
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'UNCODE_BUILDER_ABILITIES_VERSION', '0.5.2' );
+define( 'UNCODE_BUILDER_ABILITIES_VERSION', '0.6.0' );
 
 require_once __DIR__ . '/includes/class-plugin.php';
 require_once __DIR__ . '/includes/class-builder-escaping.php';
@@ -36,6 +36,7 @@ require_once __DIR__ . '/includes/class-layout-writer.php';
 require_once __DIR__ . '/includes/class-write-policy.php';
 require_once __DIR__ . '/includes/class-template-library.php';
 require_once __DIR__ . '/includes/class-option-checker.php';
+require_once __DIR__ . '/includes/class-draft-copies.php';
 require_once __DIR__ . '/includes/class-uncode-integration.php';
 require_once __DIR__ . '/includes/abilities/class-ability.php';
 require_once __DIR__ . '/includes/abilities/class-write-ability.php';
@@ -52,5 +53,6 @@ require_once __DIR__ . '/includes/abilities/class-update-element.php';
 require_once __DIR__ . '/includes/abilities/class-move-element.php';
 require_once __DIR__ . '/includes/abilities/class-remove-element.php';
 require_once __DIR__ . '/includes/abilities/class-restore-snapshot.php';
+require_once __DIR__ . '/includes/abilities/class-create-draft-copy.php';
 
 Uncode_Builder_Abilities\Plugin::boot();
