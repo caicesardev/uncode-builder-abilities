@@ -117,7 +117,7 @@ final class Uncode_Integration {
 			return array();
 		}
 
-		preg_match_all( '/vc_remove_element\(\s*[\'"]([\w-]+)[\'"]\s*\)/', (string) file_get_contents( $file ), $matches );
+		preg_match_all( '/vc_remove_element\(\s*[\'"]([\w-]+)[\'"]\s*\)/', (string) file_get_contents( $file ), $matches ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local theme file.
 
 		return array_values( array_unique( $matches[1] ) );
 	}

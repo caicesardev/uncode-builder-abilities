@@ -78,9 +78,9 @@ final class Layout_Operations {
 			return self::invalid( $composed['errors'] );
 		}
 
-		$offset  = $document->insertion_offset( $parent_path, $index );
-		$focus   = array();
-		$cursor  = $offset;
+		$offset = $document->insertion_offset( $parent_path, $index );
+		$focus  = array();
+		$cursor = $offset;
 		foreach ( $composed['shortcodes'] as $shortcode ) {
 			$focus[] = $cursor;
 			$cursor += strlen( $shortcode );

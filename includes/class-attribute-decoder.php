@@ -36,7 +36,7 @@ final class Attribute_Decoder {
 	}
 
 	private static function decode_base64_text( string $value ) {
-		$binary = base64_decode( $value, true );
+		$binary = base64_decode( $value, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- WPBakery stores raw HTML attributes as base64.
 
 		return false === $binary ? null : rawurldecode( $binary );
 	}

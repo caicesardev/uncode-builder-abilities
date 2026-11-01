@@ -43,7 +43,7 @@ jobs:
         run: vendor/bin/phpcs --runtime-set ignore_warnings_on_exit 1 --report-full --report-checkstyle=./phpcs-report.xml
       - name: Annotate pull request
         if: ${{ always() && github.event_name == 'pull_request' }}
-        run: cs2pr ./phpcs-report.xml
+        run: cs2pr --graceful-warnings ./phpcs-report.xml
 
   unit:
     name: Unit tests (PHP ${{ matrix.php }})

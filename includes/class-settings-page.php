@@ -186,7 +186,7 @@ final class Settings_Page {
 
 	private static function strategy_choices(): array {
 		return array(
-			self::AUTOMATIC_STRATEGY          => __( 'Automatic: Rewrite & Republish when available, otherwise a native autosave', 'uncode-builder-abilities' ),
+			self::AUTOMATIC_STRATEGY        => __( 'Automatic: Rewrite & Republish when available, otherwise a native autosave', 'uncode-builder-abilities' ),
 			Draft_Copies::STRATEGY_AUTOSAVE => __( 'Always a native WordPress autosave', 'uncode-builder-abilities' ),
 			Draft_Copies::STRATEGY_REWRITE  => __( 'Rewrite & Republish (Yoast Duplicate Post) when available', 'uncode-builder-abilities' ),
 		);
