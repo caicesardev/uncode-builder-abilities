@@ -2,6 +2,7 @@
 
 namespace Uncode_Builder_Abilities\Tests;
 
+use Brain\Monkey\Filters;
 use Uncode_Builder_Abilities\Layout_Preview;
 
 final class LayoutPreviewTest extends Test_Case {
@@ -39,6 +40,22 @@ final class LayoutPreviewTest extends Test_Case {
 			),
 			$analysis['outline']
 		);
+	}
+
+	public function test_ignores_code_and_keeps_words_apart_at_line_breaks(): void {
+		$analysis = ( new Layout_Preview() )->analyze( '<h2>Web design<br>made to measure</h2><script>var row = "[vc_row]";</script><style>.a{}</style><p>One two</p>' );
+
+		$this->assertSame( 'Web design made to measure', $analysis['outline'][0]['text'] );
+		$this->assertSame( array(), $analysis['unrendered_shortcodes'] );
+		$this->assertSame( 7, $analysis['words'] );
+	}
+
+	public function test_lines_drawn_by_classes_keep_their_words_apart(): void {
+		Filters\expectApplied( 'uncode_builder_abilities_preview_line_classes' )->andReturn( array( 'heading-text-inner' ) );
+
+		$analysis = ( new Layout_Preview() )->analyze( '<h1><span class="heading-text-inner">Web design</span><span class="heading-text-inner">made to measure</span></h1>' );
+
+		$this->assertSame( 'Web design made to measure', $analysis['outline'][0]['text'] );
 	}
 
 	public function test_reports_issues_and_unrendered_shortcodes(): void {

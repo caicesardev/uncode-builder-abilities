@@ -85,6 +85,14 @@ final class Uncode_Integration {
 		'vc_copyright'          => 'uncode_copyright',
 	);
 
+	const PREVIEW_LINE_CLASSES = array( 'heading-text-inner' );
+
+	const BUTTON_LINK_SIZES = array( 'btn-link', 'link' );
+
+	const OUTLINE_HOVERS = array( '', 'outlined' );
+
+	const LIGHT_LUMINANCE = 0.7;
+
 	private static ?array $resolved_tokens = null;
 
 	public static function register(): void {
@@ -95,6 +103,8 @@ final class Uncode_Integration {
 		add_filter( 'uncode_builder_abilities_token_sources', array( __CLASS__, 'add_token_sources' ) );
 		add_filter( 'uncode_builder_abilities_design_token', array( __CLASS__, 'resolve_token' ), 10, 2 );
 		add_filter( 'uncode_builder_abilities_abilities', array( __CLASS__, 'add_abilities' ) );
+		add_filter( 'uncode_builder_abilities_element_advice', array( __CLASS__, 'advise_element' ), 10, 3 );
+		add_filter( 'uncode_builder_abilities_preview_line_classes', array( __CLASS__, 'add_preview_line_classes' ) );
 		add_action( 'uncode_builder_abilities_before_load_templates', array( __CLASS__, 'adapt_wireframes_to_site' ) );
 		add_filter( 'uncode_builder_abilities_legacy_elements', array( __CLASS__, 'add_retired_modules' ) );
 	}
@@ -155,6 +165,54 @@ final class Uncode_Integration {
 		}
 
 		return $abilities;
+	}
+
+	public static function add_preview_line_classes( array $classes ): array {
+		return array_merge( $classes, self::PREVIEW_LINE_CLASSES );
+	}
+
+	public static function advise_element( array $advice, string $tag, array $attributes ): array {
+		return 'vc_button' === $tag ? array_merge( $advice, self::button_advice( $attributes ) ) : $advice;
+	}
+
+	private static function button_advice( array $attributes ): array {
+		if ( in_array( $attributes['size'] ?? '', self::BUTTON_LINK_SIZES, true ) ) {
+			return array();
+		}
+
+		$advice   = array();
+		$hover    = '' === ( $attributes['hover_fx'] ?? '' ) ? (string) ( get_option( self::THEME_OPTIONS, array() )['_uncode_button_hover'] ?? '' ) : $attributes['hover_fx'];
+		$wants    = 'yes' === ( $attributes['outline'] ?? '' );
+		$outlined = $wants && in_array( $hover, self::OUTLINE_HOVERS, true );
+
+		if ( $wants && ! $outlined ) {
+			$advice[] = sprintf( 'outline="yes" is ignored while the button hover is "%s" (the theme default); add hover_fx="outlined".', $hover );
+		}
+		if ( ! $outlined && 'yes' !== ( $attributes['text_skin'] ?? '' ) && self::is_light( self::button_color( $attributes ) ) ) {
+			$advice[] = 'its text is white on a light button color and cannot be read; set text_skin="yes", or outline="yes" with hover_fx="outlined" over a dark background.';
+		}
+
+		return $advice;
+	}
+
+	private static function button_color( array $attributes ): string {
+		if ( 'uncode-solid' === ( $attributes['button_color_type'] ?? '' ) ) {
+			return (string) ( $attributes['button_color_solid'] ?? '' );
+		}
+
+		return (string) ( self::resolved_tokens()['colors'][ $attributes['button_color'] ?? '' ] ?? '' );
+	}
+
+	private static function is_light( string $color ): bool {
+		if ( ! preg_match( '/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i', trim( $color ), $hex ) ) {
+			return false;
+		}
+
+		$digits = 3 === strlen( $hex[1] ) ? preg_replace( '/(.)/', '$1$1', $hex[1] ) : $hex[1];
+
+		list( $red, $green, $blue ) = array_map( 'hexdec', str_split( $digits, 2 ) );
+
+		return ( 0.2126 * $red + 0.7152 * $green + 0.0722 * $blue ) / 255 > self::LIGHT_LUMINANCE;
 	}
 
 	private static function resolved_tokens(): array {

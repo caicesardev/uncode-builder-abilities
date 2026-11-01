@@ -38,6 +38,7 @@ foreach (
 		'class-element-composer.php',
 		'class-layout-operations.php',
 		'class-layout-preview.php',
+		'class-element-advisor.php',
 		'class-uncode-integration.php',
 	) as $file
 ) {

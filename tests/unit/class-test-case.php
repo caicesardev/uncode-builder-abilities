@@ -38,6 +38,7 @@ abstract class Test_Case extends PHPUnit_Test_Case {
 				'wp_generate_password' => static fn( $length ) => str_repeat( 'a', (int) $length ),
 				'is_wp_error'          => static fn( $thing ) => $thing instanceof \WP_Error,
 				'wp_parse_url'         => static fn( $url, $component = -1 ) => parse_url( $url, $component ),
+				'sanitize_html_class'  => static fn( $class ) => preg_replace( '/[^A-Za-z0-9_-]/', '', (string) $class ),
 			)
 		);
 	}

@@ -5,6 +5,7 @@ namespace Uncode_Builder_Abilities;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use DOMXPath;
 use WP_Post;
 
 defined( 'ABSPATH' ) || exit;
@@ -18,6 +19,8 @@ final class Layout_Preview {
 	const SKIPPED_TAGS = array( 'script', 'style', 'noscript', 'template', 'svg', 'head' );
 
 	const TEXT_TAGS = array( 'p', 'li', 'blockquote', 'figcaption', 'td', 'dd' );
+
+	const BLOCK_TAGS = array( 'p', 'div', 'li', 'blockquote', 'figcaption', 'td', 'th', 'dd', 'dt', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'header', 'footer' );
 
 	const HEADING_PATTERN = '/^h([1-6])$/';
 
@@ -68,6 +71,7 @@ final class Layout_Preview {
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous );
 
+		self::keep_visible_text( $document );
 		$this->walk( $document->documentElement );
 		$text = self::text_of( $document->documentElement );
 
@@ -83,6 +87,37 @@ final class Layout_Preview {
 		);
 	}
 
+	private static function keep_visible_text( DOMDocument $document ): void {
+		foreach ( self::SKIPPED_TAGS as $tag ) {
+			foreach ( iterator_to_array( $document->getElementsByTagName( $tag ) ) as $element ) {
+				$element->parentNode->removeChild( $element );
+			}
+		}
+
+		foreach ( iterator_to_array( $document->getElementsByTagName( 'br' ) ) as $line_break ) {
+			$line_break->parentNode->replaceChild( $document->createTextNode( ' ' ), $line_break );
+		}
+
+		foreach ( self::line_elements( $document ) as $line ) {
+			$line->appendChild( $document->createTextNode( ' ' ) );
+		}
+	}
+
+	private static function line_elements( DOMDocument $document ): array {
+		$lines = array();
+		foreach ( self::BLOCK_TAGS as $tag ) {
+			$lines = array_merge( $lines, iterator_to_array( $document->getElementsByTagName( $tag ) ) );
+		}
+
+		$xpath = new DOMXPath( $document );
+		foreach ( (array) apply_filters( 'uncode_builder_abilities_preview_line_classes', array() ) as $class ) {
+			$query = sprintf( "//*[contains(concat(' ', normalize-space(@class), ' '), ' %s ')]", sanitize_html_class( $class ) );
+			$lines = array_merge( $lines, iterator_to_array( $xpath->query( $query ) ) );
+		}
+
+		return $lines;
+	}
+
 	private function walk( ?DOMNode $node ): void {
 		if ( null === $node ) {
 			return;
@@ -94,10 +129,6 @@ final class Layout_Preview {
 			}
 
 			$tag = strtolower( $child->tagName );
-			if ( in_array( $tag, self::SKIPPED_TAGS, true ) ) {
-				continue;
-			}
-
 			if ( preg_match( self::HEADING_PATTERN, $tag, $level ) ) {
 				$this->heading( (int) $level[1], self::text_of( $child ) );
 				continue;
