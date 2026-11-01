@@ -1,6 +1,6 @@
 # Uncode Builder Abilities
 
-WordPress plugin by [caicesardev](https://caicesardev.com) that exposes the WPBakery Page Builder (and the Uncode theme on top of it) as [WordPress Abilities](https://developer.wordpress.org/apis/abilities/). Any MCP transport that serves abilities can hand them to an AI agent, so it composes pages with the real builder elements instead of pasting generic HTML.
+WordPress plugin that exposes the WPBakery Page Builder (and the Uncode theme on top of it) as [WordPress Abilities](https://developer.wordpress.org/apis/abilities/). Any MCP transport that serves abilities can hand them to an AI agent, so it composes pages with the real builder elements instead of pasting generic HTML.
 
 ## Requirements
 
