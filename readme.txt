@@ -4,7 +4,7 @@ Tags: wpbakery, uncode, page builder, ai, mcp
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.11.0
+Stable tag: 0.12.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,6 +21,7 @@ Uncode Builder Abilities exposes the WPBakery Page Builder, and the Uncode theme
 * Page layouts as trees with stable paths and ids.
 * The template library (with Uncode, its 900+ wireframes, adapted to the site) and content blocks.
 * Per-page theme settings (with Uncode: header, menu, width, content and footer blocks, sidebar, scroll).
+* The global theme options, read-only (with Uncode: the Theme Options panel), with secrets redacted.
 * A rendered preview of a page or section: a readable outline plus issues such as heading jumps, empty links or images without alt text.
 
 **Edit**
@@ -57,6 +58,9 @@ Not in the default drafts-only mode. A person applies draft copies by restoring 
 No. It keeps its own snapshots (one per item by default, configurable) for `restore-snapshot`.
 
 == Changelog ==
+
+= 0.12.0 =
+* New get-theme-options ability: reads the global theme options (with Uncode, the Theme Options panel) by section, search or changes from the defaults, with each value's label, default and whether it applies. Read-only, for users who can edit theme options, with secret-looking values redacted.
 
 = 0.11.0 =
 * New find-elements ability: search a layout by tag, attributes and text without reading the whole tree.

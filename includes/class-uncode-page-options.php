@@ -56,7 +56,7 @@ final class Uncode_Page_Options {
 			if ( empty( $raw['id'] ) || ! isset( self::KINDS[ $type ] ) ) {
 				continue;
 			}
-			$fields[] = self::normalized( $raw, $section );
+			$fields[] = self::field( $raw, $section, self::KINDS[ $type ] );
 		}
 
 		return $fields;
@@ -100,13 +100,13 @@ final class Uncode_Page_Options {
 		return $captured;
 	}
 
-	private static function normalized( array $raw, string $section ): array {
+	public static function field( array $raw, string $section, string $kind ): array {
 		$type  = (string) $raw['type'];
 		$field = array(
 			'name'    => (string) $raw['id'],
 			'label'   => Param_Normalizer::plain_text( $raw['label'] ?? '' ),
 			'section' => $section,
-			'kind'    => self::KINDS[ $type ],
+			'kind'    => $kind,
 		);
 
 		$options = self::options( $type, $raw );
@@ -143,6 +143,7 @@ final class Uncode_Page_Options {
 			case 'sidebar-select':
 				return array_values( array_map( static fn( $sidebar ) => Param_Normalizer::option( $sidebar['id'], $sidebar['name'] ), (array) ( $GLOBALS['wp_registered_sidebars'] ?? array() ) ) );
 			case 'select':
+			case 'radio-image':
 			case 'custom-post-type-select':
 			case 'page-select':
 				return array_map( static fn( $choice ) => Param_Normalizer::option( $choice['value'] ?? '', $choice['label'] ?? '' ), (array) ( $raw['choices'] ?? array() ) );

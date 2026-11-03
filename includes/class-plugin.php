@@ -8,6 +8,7 @@ use Uncode_Builder_Abilities\Abilities\Find_Elements;
 use Uncode_Builder_Abilities\Abilities\Get_Design_Tokens;
 use Uncode_Builder_Abilities\Abilities\Get_Element_Schema;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Options;
+use Uncode_Builder_Abilities\Abilities\Get_Theme_Options;
 use Uncode_Builder_Abilities\Abilities\Render_Preview;
 use Uncode_Builder_Abilities\Abilities\Update_Page_Options;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Tree;
@@ -98,6 +99,10 @@ final class Plugin {
 			$page_options = new Page_Options( $tokens );
 			$abilities[]  = new Get_Page_Options( $page_options );
 			$abilities[]  = new Update_Page_Options( $parser, $operations, $writer, $page_options );
+		}
+
+		if ( Theme_Options::available() ) {
+			$abilities[] = new Get_Theme_Options( new Theme_Options() );
 		}
 
 		foreach ( apply_filters( 'uncode_builder_abilities_abilities', $abilities, $catalog, $parser ) as $ability ) {
