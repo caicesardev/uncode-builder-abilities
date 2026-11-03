@@ -64,6 +64,8 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_nesting_rules`, `uncode_builder_abilities_root_tags` | Nesting rules (`only`, `except`, and `structural` children the builder places itself). |
 | `uncode_builder_abilities_element_advice` | Advice returned with every edit for the elements it touched, such as a button whose text cannot be read. |
 | `uncode_builder_abilities_preview_line_classes` | Classes that render as separate lines, so render-preview keeps their words apart. |
+| `uncode_builder_abilities_hidden_devices`, `uncode_builder_abilities_preview_hidden_classes` | Devices an element is hidden on (from its attributes, and from rendered classes), for `visible_on` and per-device heading checks. |
+| `uncode_builder_abilities_embedded_blocks` | Shortcodes that embed another item, and the attribute holding its ID, for `expand_blocks`. |
 | `uncode_builder_abilities_generate_id` | Generate ids for auto-id parameter types. |
 | `uncode_builder_abilities_token_sources`, `uncode_builder_abilities_design_token` | Declare and resolve design tokens. |
 | `uncode_builder_abilities_abilities` | Add or remove abilities. |

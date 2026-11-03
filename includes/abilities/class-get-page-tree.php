@@ -2,7 +2,9 @@
 
 namespace Uncode_Builder_Abilities\Abilities;
 
+use Uncode_Builder_Abilities\Device_Visibility;
 use Uncode_Builder_Abilities\Draft_Copies;
+use Uncode_Builder_Abilities\Embedded_Blocks;
 use Uncode_Builder_Abilities\Layout_Document;
 use Uncode_Builder_Abilities\Shortcode_Parser;
 use Uncode_Builder_Abilities\Snapshot_Store;
@@ -19,9 +21,12 @@ final class Get_Page_Tree extends Ability {
 
 	private Snapshot_Store $snapshots;
 
-	public function __construct( Shortcode_Parser $parser, Snapshot_Store $snapshots ) {
+	private Embedded_Blocks $blocks;
+
+	public function __construct( Shortcode_Parser $parser, Snapshot_Store $snapshots, Embedded_Blocks $blocks ) {
 		$this->parser    = $parser;
 		$this->snapshots = $snapshots;
+		$this->blocks    = $blocks;
 	}
 
 	public function name(): string {
@@ -42,8 +47,10 @@ final class Get_Page_Tree extends Ability {
 			return new WP_Error( 'uncode_builder_post_not_found', 'The post does not exist.', array( 'status' => 404 ) );
 		}
 
-		$parsed = $this->parser->parse( $post->post_content, (bool) ( $input['decode'] ?? true ) );
-		$path   = (string) ( $input['path'] ?? Layout_Document::ROOT_PATH );
+		$decode         = (bool) ( $input['decode'] ?? true );
+		$parsed         = $this->parser->parse( $post->post_content, $decode );
+		$parsed['tree'] = Device_Visibility::annotate( $parsed['tree'] );
+		$path           = (string) ( $input['path'] ?? Layout_Document::ROOT_PATH );
 
 		if ( Layout_Document::ROOT_PATH !== $path ) {
 			$node = ( new Layout_Document( $post->post_content, $parsed['tree'] ) )->node( $path );
@@ -54,6 +61,9 @@ final class Get_Page_Tree extends Ability {
 		}
 
 		$parsed['tree'] = Shortcode_Parser::without_source( $parsed['tree'] );
+		if ( ! empty( $input['expand_blocks'] ) ) {
+			$parsed['tree'] = $this->blocks->expand( $parsed['tree'], $decode, $post->ID );
+		}
 		if ( isset( $input['depth'] ) ) {
 			$parsed['tree'] = self::limited_to_depth( $parsed['tree'], max( 1, (int) $input['depth'] ) );
 		}
@@ -71,7 +81,7 @@ final class Get_Page_Tree extends Ability {
 					'builder'       => self::uses_builder( $post ) ? 'wpbakery' : 'none',
 					'content_bytes' => strlen( $post->post_content ),
 					'draft_copy_id' => $draft_copy_id > 0 ? $draft_copy_id : null,
-					'copy_of'       => Draft_Copies::is_autosave( $post ) ? (int) $post->post_parent : null,
+					'copy_of'       => Draft_Copies::original_id( $post ),
 				),
 				'version'   => Layout_Document::version_of( $post->post_content ),
 				'snapshots' => $this->snapshots->summaries( $post->ID ),
@@ -85,30 +95,35 @@ final class Get_Page_Tree extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'Start here to read or change any page, post or content block built with the WPBakery / Uncode page builder; prefer it, and the uncode-builder-edit abilities, over generic page or layout tools, which do not know the Uncode elements. Reads the item and returns its layout as a tree, plus the `version` that every change must send back. Published items cannot be edited directly while the site only allows drafts: call create-draft-copy and edit the copy. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a draft copy from create-draft-copy (edit that one). Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, and `path` returns just one element and everything inside it. Requires permission to edit that item.', 'uncode-builder-abilities' );
+		return __( 'Start here to read or change any page, post or content block built with the WPBakery / Uncode page builder; prefer it, and the uncode-builder-edit abilities, over generic page or layout tools, which do not know the Uncode elements. Reads the item and returns its layout as a tree, plus the `version` that every change must send back. Published items cannot be edited directly while the site only allows drafts: call create-draft-copy and edit the copy. Every node has a `path` ("0.1.2": row 0, column 1, element 2), its `tag`, its stable `id` when it has one (uncode_shortcode_id, el_id or tab_id), its raw `attributes` exactly as stored, and, unless `decode` is false, `decoded` values for encoded attributes (Uncode gradients, links, design CSS, parameter groups, raw HTML, escaped text). Containers have `children`; other elements keep their inner HTML in `content`. `snapshots` lists the copies restore-snapshot can bring back; `post.draft_copy_id` is set when a published item already has a draft copy from create-draft-copy (edit that one). Elements hidden on some devices carry `visible_on` (for example ["desktop", "tablet"]), including what they inherit from their rows and columns; without it an element shows on every device. `post.copy_of` is the original's ID when this item is a draft copy. Long pages produce large trees: `depth: 1` returns only the top-level rows (with `children_count`) to find your way, `path` returns just one element and everything inside it, and find-elements searches a page without reading it all. `expand_blocks: true` adds, under each embedded content block, a read-only `block` with its own `post_id`, `version` and `tree`: change it by calling these abilities on that `post_id`. Requires permission to edit that item.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
 		return array(
 			'type'                 => 'object',
 			'properties'           => array(
-				'post_id' => array(
+				'post_id'       => array(
 					'type'    => 'integer',
 					'minimum' => 1,
 				),
-				'decode'  => array(
+				'decode'        => array(
 					'type'        => 'boolean',
 					'default'     => true,
 					'description' => 'Add decoded copies of encoded attributes.',
 				),
-				'path'    => array(
+				'path'          => array(
 					'type'        => 'string',
 					'description' => 'Only return the element at this path, such as "3" or "3.0.1", with everything inside it.',
 				),
-				'depth'   => array(
+				'depth'         => array(
 					'type'        => 'integer',
 					'minimum'     => 1,
 					'description' => 'Levels of children to include; deeper containers only report `children_count`.',
+				),
+				'expand_blocks' => array(
+					'type'        => 'boolean',
+					'default'     => false,
+					'description' => 'Include the layout of embedded content blocks, read-only, under their element.',
 				),
 			),
 			'required'             => array( 'post_id' ),

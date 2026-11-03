@@ -4,6 +4,7 @@ namespace Uncode_Builder_Abilities;
 
 use Uncode_Builder_Abilities\Abilities\Ability;
 use Uncode_Builder_Abilities\Abilities\Create_Draft_Copy;
+use Uncode_Builder_Abilities\Abilities\Find_Elements;
 use Uncode_Builder_Abilities\Abilities\Get_Design_Tokens;
 use Uncode_Builder_Abilities\Abilities\Get_Element_Schema;
 use Uncode_Builder_Abilities\Abilities\Get_Page_Options;
@@ -79,7 +80,8 @@ final class Plugin {
 			new List_Elements( $catalog ),
 			new Get_Element_Schema( $catalog, new Schema_Compactor( $tokens ) ),
 			new Get_Design_Tokens( $tokens ),
-			new Get_Page_Tree( $parser, $snapshots ),
+			new Get_Page_Tree( $parser, $snapshots, new Embedded_Blocks( $parser ) ),
+			new Find_Elements( $parser ),
 			new List_Templates( $templates ),
 			new Get_Template( $templates, $parser, $checker ),
 			new Insert_Elements( $parser, $operations, $writer ),

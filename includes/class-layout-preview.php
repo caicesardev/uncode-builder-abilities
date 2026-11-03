@@ -32,7 +32,15 @@ final class Layout_Preview {
 
 	private array $issues = array();
 
-	private int $previous_heading = 0;
+	private array $device_issues = array();
+
+	private array $previous_heading = array();
+
+	private array $h1_count = array();
+
+	private array $hidden_classes = array();
+
+	private array $visible = Device_Visibility::DEVICES;
 
 	public function render( WP_Post $context, string $source ): string {
 		if ( class_exists( 'WPBMap' ) && method_exists( 'WPBMap', 'addAllMappedShortcodes' ) ) {
@@ -63,7 +71,10 @@ final class Layout_Preview {
 	public function analyze( string $html ): array {
 		$this->outline          = array();
 		$this->issues           = array();
-		$this->previous_heading = 0;
+		$this->device_issues    = array();
+		$this->previous_heading = array();
+		$this->h1_count         = array();
+		$this->hidden_classes   = (array) apply_filters( 'uncode_builder_abilities_preview_hidden_classes', array() );
 
 		$document = new DOMDocument();
 		$previous = libxml_use_internal_errors( true );
@@ -72,7 +83,7 @@ final class Layout_Preview {
 		libxml_use_internal_errors( $previous );
 
 		self::keep_visible_text( $document );
-		$this->walk( $document->documentElement );
+		$this->walk( $document->documentElement, Device_Visibility::DEVICES );
 		$text = self::text_of( $document->documentElement );
 
 		preg_match_all( self::SHORTCODE_PATTERN, $text, $shortcodes );
@@ -81,7 +92,7 @@ final class Layout_Preview {
 			'html_bytes'            => strlen( $html ),
 			'words'                 => str_word_count( wp_strip_all_tags( $text ) ),
 			'unrendered_shortcodes' => array_values( array_unique( $shortcodes[1] ) ),
-			'issues'                => array_values( array_unique( $this->issues ) ),
+			'issues'                => array_values( array_unique( array_merge( $this->issues, $this->device_issue_messages() ) ) ),
 			'outline'               => array_slice( $this->outline, 0, self::MAX_OUTLINE ),
 			'outline_truncated'     => count( $this->outline ) > self::MAX_OUTLINE,
 		);
@@ -118,7 +129,7 @@ final class Layout_Preview {
 		return $lines;
 	}
 
-	private function walk( ?DOMNode $node ): void {
+	private function walk( ?DOMNode $node, array $visible ): void {
 		if ( null === $node ) {
 			return;
 		}
@@ -128,6 +139,8 @@ final class Layout_Preview {
 				continue;
 			}
 
+			$this->visible = Device_Visibility::without( $visible, $this->hidden_devices( $child ) );
+
 			$tag = strtolower( $child->tagName );
 			if ( preg_match( self::HEADING_PATTERN, $tag, $level ) ) {
 				$this->heading( (int) $level[1], self::text_of( $child ) );
@@ -135,8 +148,14 @@ final class Layout_Preview {
 			}
 
 			$this->describe( $tag, $child );
-			$this->walk( $child );
+			$this->walk( $child, $this->visible );
 		}
+	}
+
+	private function hidden_devices( DOMElement $element ): array {
+		$classes = explode( ' ', (string) preg_replace( '/\s+/', ' ', $element->getAttribute( 'class' ) ) );
+
+		return array_keys( array_intersect( $this->hidden_classes, $classes ) );
 	}
 
 	private function describe( string $tag, DOMElement $element ): void {
@@ -165,14 +184,23 @@ final class Layout_Preview {
 	}
 
 	private function heading( int $level, string $text ): void {
-		if ( $this->previous_heading > 0 && $level > $this->previous_heading + 1 ) {
-			$this->issues[] = sprintf( 'Heading level jumps from h%d to h%d ("%s").', $this->previous_heading, $level, self::excerpt( $text ) );
+		foreach ( $this->visible as $device ) {
+			$previous = $this->previous_heading[ $device ] ?? 0;
+			if ( $previous > 0 && $level > $previous + 1 ) {
+				$this->device_issue( sprintf( 'Heading level jumps from h%d to h%d ("%s")', $previous, $level, self::excerpt( $text ) ), $device );
+			}
+			if ( 1 === $level ) {
+				$this->h1_count[ $device ] = ( $this->h1_count[ $device ] ?? 0 ) + 1;
+				if ( $this->h1_count[ $device ] > 1 ) {
+					$this->device_issue( sprintf( 'More than one h1 ("%s")', self::excerpt( $text ) ), $device );
+				}
+			}
+			$this->previous_heading[ $device ] = $level;
 		}
 		if ( '' === $text ) {
 			$this->issues[] = sprintf( 'Empty h%d heading.', $level );
 		}
 
-		$this->previous_heading = $level;
 		$this->add(
 			array(
 				'heading' => $level,
@@ -216,7 +244,23 @@ final class Layout_Preview {
 		);
 	}
 
+	private function device_issue( string $message, string $device ): void {
+		$this->device_issues[ $message ][] = $device;
+	}
+
+	private function device_issue_messages(): array {
+		$messages = array();
+		foreach ( $this->device_issues as $message => $devices ) {
+			$messages[] = sprintf( '%s on %s.', $message, implode( ', ', Device_Visibility::sorted( array_unique( $devices ) ) ) );
+		}
+
+		return $messages;
+	}
+
 	private function add( array $entry ): void {
+		if ( Device_Visibility::DEVICES !== $this->visible ) {
+			$entry['visible_on'] = $this->visible;
+		}
 		$this->outline[] = $entry;
 	}
 

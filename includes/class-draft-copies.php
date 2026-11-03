@@ -42,6 +42,16 @@ final class Draft_Copies {
 		return 'revision' !== $post->post_type || ( self::is_autosave( $post ) && get_current_user_id() === (int) $post->post_author );
 	}
 
+	public static function original_id( WP_Post $post ): ?int {
+		if ( self::is_autosave( $post ) ) {
+			return (int) $post->post_parent;
+		}
+
+		$original = (int) get_post_meta( $post->ID, self::REWRITE_COPY_OF_META, true );
+
+		return $original > 0 ? $original : null;
+	}
+
 	public static function permission_target_id( WP_Post $post ): int {
 		return self::is_autosave( $post ) ? (int) $post->post_parent : $post->ID;
 	}
