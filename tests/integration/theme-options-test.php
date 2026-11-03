@@ -26,6 +26,10 @@ $hover = $ability->execute( array( 'fields' => array( '_uncode_button_hover' ) )
 $field = $hover['fields'][0] ?? array();
 uba_check( 'button hover value and label', isset( $field['value'], $field['value_label'] ) && 'select' === $field['kind'], array_intersect_key( $field, array_flip( array( 'value', 'value_label', 'is_default', 'applies' ) ) ) );
 
+$labels = array_column( (array) ( $ability->execute( array( 'fields' => array( '_uncode_footer_block', '_uncode_accent_color', '_uncode_headers' ) ) )['fields'] ?? array() ), null, 'name' );
+uba_check( 'content block and palette colour have readable labels', ! is_numeric( $labels['_uncode_footer_block']['value_label'] ?? '1' ) && '' !== ( $labels['_uncode_accent_color']['value_label'] ?? '' ), array_column( $labels, 'value_label', 'name' ) );
+uba_check( 'options without a label get one', '' !== ( $labels['_uncode_headers']['label'] ?? '' ), $labels['_uncode_headers']['label'] ?? null );
+
 $search = $ability->execute( array( 'search' => 'layout width' ) );
 uba_check( 'search finds the layout width', in_array( '_uncode_main_width', array_column( (array) ( $search['fields'] ?? array() ), 'name' ), true ), array_column( (array) ( $search['fields'] ?? array() ), 'name' ) );
 

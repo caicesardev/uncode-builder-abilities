@@ -77,6 +77,7 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_page_options_available`, `uncode_builder_abilities_page_options` | Provide per-page settings for another theme (normalized fields: name, label, section, kind, options, default, visible_when). |
 | `uncode_builder_abilities_theme_options_available`, `uncode_builder_abilities_theme_options`, `uncode_builder_abilities_theme_option_values` | Provide global theme options for another theme (fields shaped like page options, plus `group`; values by option name). |
 | `uncode_builder_abilities_theme_option_is_secret`, `uncode_builder_abilities_theme_options_capability` | Redact more options in get-theme-options, or change who can read them (default `edit_theme_options`). |
+| `uncode_builder_abilities_theme_option_value_label` | Readable `value_label` for a theme option value (the Uncode layer names palette colours; post and media IDs get their title). |
 | `uncode_builder_abilities_draft_copy_strategy` | `autosave` (native, default) or `rewrite_and_republish` (Yoast Duplicate Post) for create-draft-copy. |
 
 ## Development
