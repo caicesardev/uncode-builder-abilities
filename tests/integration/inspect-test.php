@@ -43,24 +43,31 @@ $row = array(
 			'children'   => array( uba_h1( 'Inicio escritorio' ) ),
 		),
 		array(
-			'tag'      => 'vc_column',
+			'tag'        => 'vc_column',
 			'attributes' => array( 'width' => '1/2' ),
-			'children' => array_merge(
-				array(
-					uba_h1(
-						'Inicio móvil',
-						array(
-							'desktop_visibility' => 'yes',
-							'medium_visibility'  => 'yes',
-						)
-					),
-				),
-				$block_id > 0 ? array(
+			'children'   => array(
+				uba_h1(
+					'Inicio móvil',
 					array(
-						'tag'        => 'uncode_block',
-						'attributes' => array( 'id' => (string) $block_id ),
-					),
-				) : array()
+						'desktop_visibility' => 'yes',
+						'medium_visibility'  => 'yes',
+					)
+				),
+			),
+		),
+	),
+);
+
+$block_row = array(
+	'tag'      => 'vc_row',
+	'children' => array(
+		array(
+			'tag'      => 'vc_column',
+			'children' => array(
+				array(
+					'tag'        => 'uncode_block',
+					'attributes' => array( 'id' => (string) $block_id ),
+				),
 			),
 		),
 	),
@@ -71,10 +78,27 @@ $inserted = uba_run(
 	array(
 		'post_id'  => PAGE_ID,
 		'version'  => uba_version(),
-		'elements' => array( $row ),
+		'elements' => $block_id > 0 ? array( $row, $block_row ) : array( $row ),
 	)
 );
-uba_check( 'fila de prueba guardada', ! is_wp_error( $inserted ) && ! empty( $inserted['saved'] ), is_wp_error( $inserted ) ? $inserted->get_error_message() : '' );
+uba_check( 'filas de prueba guardadas sin consejos', ! is_wp_error( $inserted ) && ! empty( $inserted['saved'] ) && empty( $inserted['advice'] ), is_wp_error( $inserted ) ? $inserted->get_error_message() : ( $inserted['advice'] ?? '' ) );
+
+$misplaced = uba_run(
+	'uncode-builder-edit/insert-elements',
+	array(
+		'post_id'     => PAGE_ID,
+		'version'     => uba_version(),
+		'parent_path' => '0.1',
+		'dry_run'     => true,
+		'elements'    => array(
+			array(
+				'tag'        => 'uncode_block',
+				'attributes' => array( 'id' => (string) max( 1, $block_id ) ),
+			),
+		),
+	)
+);
+uba_check( 'un content block junto a otros elementos recibe un consejo', ! is_wp_error( $misplaced ) && 1 === count( $misplaced['advice'] ?? array() ), $misplaced['advice'] ?? $misplaced );
 
 $tree = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID, 'decode' => false ) );
 $desktop_h1 = $tree['tree'][0]['children'][0]['children'][0] ?? array();
@@ -87,7 +111,7 @@ $found = uba_run( 'uncode-builder/find-elements', array( 'post_id' => PAGE_ID, '
 uba_check( 'find-elements encuentra los dos h1', ! is_wp_error( $found ) && 2 === $found['count'] && $tree['version'] === $found['version'], is_wp_error( $found ) ? $found->get_error_message() : array_column( $found['matches'], 'path' ) );
 uba_check( 'find-elements es mucho más pequeño que el árbol', strlen( (string) wp_json_encode( $found ) ) * 2 < strlen( (string) wp_json_encode( $tree ) ), strlen( (string) wp_json_encode( $found ) ) . ' frente a ' . strlen( (string) wp_json_encode( $tree ) ) );
 
-$preview = uba_run( 'uncode-builder/render-preview', array( 'post_id' => PAGE_ID ) );
+$preview = uba_run( 'uncode-builder/render-preview', array( 'post_id' => PAGE_ID, 'path' => '0' ) );
 $h1_issue = array_filter( $preview['issues'], static fn( $issue ) => false !== strpos( $issue, 'More than one h1' ) );
 uba_check( 'un h1 por dispositivo no da aviso', array() === $h1_issue, $preview['issues'] );
 uba_check( 'el esquema indica los dispositivos', in_array( array( 'mobile' ), array_column( $preview['outline'], 'visible_on' ), true ), array_slice( $preview['outline'], 0, 3 ) );
@@ -98,9 +122,9 @@ uba_check( 'sin include_html no hay html', ! isset( $preview['html'] ) );
 
 if ( $block_id > 0 ) {
 	$expanded = uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => PAGE_ID, 'decode' => false, 'expand_blocks' => true ) );
-	$block    = $expanded['tree'][0]['children'][1]['children'][1]['block'] ?? array();
+	$block    = $expanded['tree'][1]['children'][0]['children'][0]['block'] ?? array();
 	uba_check( 'expand_blocks incluye el content block', $block_id === ( $block['post_id'] ?? 0 ) && ! empty( $block['read_only'] ) && is_array( $block['tree'] ?? null ), array_diff_key( $block, array( 'tree' => 1 ) ) );
-	uba_check( 'sin expand_blocks no se incluye', ! isset( $tree['tree'][0]['children'][1]['children'][1]['block'] ) );
+	uba_check( 'sin expand_blocks no se incluye', ! isset( $tree['tree'][1]['children'][0]['children'][0]['block'] ) );
 } else {
 	uba_check( 'expand_blocks (sin content blocks en el sitio)', true, 'omitido' );
 }
@@ -114,21 +138,23 @@ $second = uba_run(
 		'elements'    => array( uba_h1( 'Otro h1 de escritorio' ) ),
 	)
 );
-$preview  = uba_run( 'uncode-builder/render-preview', array( 'post_id' => PAGE_ID ) );
+$preview  = uba_run( 'uncode-builder/render-preview', array( 'post_id' => PAGE_ID, 'path' => '0' ) );
 $h1_issue = array_values( array_filter( $preview['issues'], static fn( $issue ) => false !== strpos( $issue, 'More than one h1' ) ) );
 uba_check( 'dos h1 en el mismo dispositivo sí dan aviso', ! is_wp_error( $second ) && 1 === count( $h1_issue ) && false !== strpos( $h1_issue[0], 'on desktop, tablet.' ), $h1_issue );
 
 $description = wp_get_ability( 'uncode-builder-edit/update-element' )->get_description();
 uba_check( 'la descripción de escritura indica la política del sitio', false !== strpos( $description, 'On this site it' ), mb_substr( $description, -170 ) );
 
-$removed = uba_run(
-	'uncode-builder-edit/remove-element',
-	array(
-		'post_id'    => PAGE_ID,
-		'version'    => uba_version(),
-		'path'       => '0',
-		'expect_tag' => 'vc_row',
-	)
-);
+do {
+	$removed = uba_run(
+		'uncode-builder-edit/remove-element',
+		array(
+			'post_id'    => PAGE_ID,
+			'version'    => uba_version(),
+			'path'       => '0',
+			'expect_tag' => 'vc_row',
+		)
+	);
+} while ( ! is_wp_error( $removed ) && '' !== get_post_field( 'post_content', PAGE_ID, 'raw' ) );
 delete_post_meta( PAGE_ID, '_uncode_builder_abilities_snapshots' );
 uba_check( 'limpieza: borrador vacío', ! is_wp_error( $removed ) && '' === get_post_field( 'post_content', PAGE_ID, 'raw' ) );

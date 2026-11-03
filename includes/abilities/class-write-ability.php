@@ -258,7 +258,7 @@ abstract class Write_Ability extends Ability {
 				'generated_ids' => $edit['generated_ids'] ?? array(),
 				'snippet'       => $edit['snippet'] ?? null,
 				'warnings'      => $edit['warnings'] ?? array(),
-				'advice'        => Element_Advisor::advice_for( $focused ),
+				'advice'        => Element_Advisor::advice_for( $after, $focused ),
 			),
 			static fn( $value ) => false === $value || ( null !== $value && array() !== $value )
 		);

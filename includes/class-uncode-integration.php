@@ -103,6 +103,8 @@ final class Uncode_Integration {
 
 	const BUTTON_LINK_SIZES = array( 'btn-link', 'link' );
 
+	const BLOCK_ROW_ADVICE = 'Uncode shows a content block in place of the whole row around it, so everything else in that row disappears: put it alone in a row of its own with a single column.';
+
 	const OUTLINE_HOVERS = array( '', 'outlined' );
 
 	const LIGHT_LUMINANCE = 0.7;
@@ -117,7 +119,7 @@ final class Uncode_Integration {
 		add_filter( 'uncode_builder_abilities_token_sources', array( __CLASS__, 'add_token_sources' ) );
 		add_filter( 'uncode_builder_abilities_design_token', array( __CLASS__, 'resolve_token' ), 10, 2 );
 		add_filter( 'uncode_builder_abilities_abilities', array( __CLASS__, 'add_abilities' ) );
-		add_filter( 'uncode_builder_abilities_element_advice', array( __CLASS__, 'advise_element' ), 10, 3 );
+		add_filter( 'uncode_builder_abilities_element_advice', array( __CLASS__, 'advise_element' ), 10, 4 );
 		add_filter( 'uncode_builder_abilities_preview_line_classes', array( __CLASS__, 'add_preview_line_classes' ) );
 		add_filter( 'uncode_builder_abilities_hidden_devices', array( __CLASS__, 'hidden_devices' ), 10, 3 );
 		add_filter( 'uncode_builder_abilities_preview_hidden_classes', array( __CLASS__, 'add_hidden_classes' ) );
@@ -206,8 +208,26 @@ final class Uncode_Integration {
 		return array_merge( $blocks, self::EMBEDDED_BLOCKS );
 	}
 
-	public static function advise_element( array $advice, string $tag, array $attributes ): array {
-		return 'vc_button' === $tag ? array_merge( $advice, self::button_advice( $attributes ) ) : $advice;
+	public static function advise_element( array $advice, string $tag, array $attributes, array $ancestors = array() ): array {
+		switch ( $tag ) {
+			case 'vc_button':
+				return array_merge( $advice, self::button_advice( $attributes ) );
+			case 'uncode_block':
+				return self::block_has_its_own_row( $ancestors ) ? $advice : array_merge( $advice, array( self::BLOCK_ROW_ADVICE ) );
+			default:
+				return $advice;
+		}
+	}
+
+	private static function block_has_its_own_row( array $ancestors ): bool {
+		$column = $ancestors[ count( $ancestors ) - 1 ] ?? array();
+		$row    = $ancestors[ count( $ancestors ) - 2 ] ?? array();
+
+		return 2 === count( $ancestors ) && 'vc_row' === ( $row['tag'] ?? '' ) && 1 === self::element_count( $row ) && 1 === self::element_count( $column );
+	}
+
+	private static function element_count( array $node ): int {
+		return count( array_filter( $node['children'] ?? array(), static fn( array $child ) => isset( $child['tag'] ) ) );
 	}
 
 	private static function button_advice( array $attributes ): array {

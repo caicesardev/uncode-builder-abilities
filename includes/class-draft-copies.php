@@ -17,6 +17,8 @@ final class Draft_Copies {
 
 	const REWRITE_COPY_META = '_dp_has_rewrite_republish_copy';
 
+	const COPY_ORIGINAL_META = '_dp_original';
+
 	const REWRITE_COPY_STATUS = 'draft';
 
 	const AUTOSAVE_FIELDS = array( 'post_title', 'post_content', 'post_excerpt' );
@@ -47,7 +49,11 @@ final class Draft_Copies {
 			return (int) $post->post_parent;
 		}
 
-		$original = (int) get_post_meta( $post->ID, self::REWRITE_COPY_OF_META, true );
+		if ( ! get_post_meta( $post->ID, self::REWRITE_COPY_OF_META, true ) ) {
+			return null;
+		}
+
+		$original = (int) get_post_meta( $post->ID, self::COPY_ORIGINAL_META, true );
 
 		return $original > 0 ? $original : null;
 	}

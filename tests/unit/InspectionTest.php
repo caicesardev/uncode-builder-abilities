@@ -64,7 +64,16 @@ final class InspectionTest extends Test_Case {
 
 	public function test_copy_of_names_the_original_for_both_copy_strategies(): void {
 		Functions\when( 'wp_is_post_autosave' )->alias( static fn( $post ) => 'revision' === $post->post_type ? (int) $post->post_parent : false );
-		Functions\when( 'get_post_meta' )->alias( static fn( $id, $key ) => 31 === (int) $id && Draft_Copies::REWRITE_COPY_OF_META === $key ? '7' : '' );
+		Functions\when( 'get_post_meta' )->alias(
+			static function ( $id, $key ) {
+				$meta = array(
+					Draft_Copies::REWRITE_COPY_OF_META => '1',
+					Draft_Copies::COPY_ORIGINAL_META   => '7',
+				);
+
+				return 31 === (int) $id ? ( $meta[ $key ] ?? '' ) : '';
+			}
+		);
 
 		$autosave = self::post( 30, '', array( 'post_type' => 'revision', 'post_parent' => 7 ) );
 		$rewrite  = self::post( 31, '' );

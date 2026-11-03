@@ -138,7 +138,7 @@ final class Find_Elements extends Ability {
 				),
 				'tag'        => array(
 					'description' => 'Element tag, or several tags, to find.',
-					'oneOf'       => array(
+					'anyOf'       => array(
 						array( 'type' => 'string' ),
 						array(
 							'type'  => 'array',
@@ -150,7 +150,7 @@ final class Find_Elements extends Ability {
 					'type'                 => 'object',
 					'description'          => 'Attribute values the element must have: "name": "value" for an exact match, "name": {"contains": "part"} for a partial one.',
 					'additionalProperties' => array(
-						'oneOf' => array(
+						'anyOf' => array(
 							array( 'type' => 'string' ),
 							array(
 								'type'                 => 'object',
