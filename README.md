@@ -89,4 +89,4 @@ composer lint   # WordPress coding standards and PHP 7.4+ compatibility
 
 ## License
 
-GPL-2.0-or-later.
+GPL-2.0-or-later. The full text is in [LICENSE](LICENSE).
