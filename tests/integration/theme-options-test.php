@@ -46,6 +46,6 @@ $json = wp_json_encode( $changed );
 uba_check( 'reply size is reasonable', strlen( (string) $json ) < 200000, strlen( (string) $json ) . ' bytes' );
 
 wp_set_current_user( 0 );
-uba_check( 'anonymous users cannot read', ! $ability->has_permission( array() ) );
+uba_check( 'anonymous users cannot read', true !== $ability->check_permissions( array() ) );
 
 uba_check( 'theme options untouched', uba_fingerprint() === $before );
