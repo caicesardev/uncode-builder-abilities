@@ -113,6 +113,7 @@ final class Uncode_Integration {
 
 	public static function register(): void {
 		Uncode_Page_Options::register();
+		Uncode_Theme_Options::register();
 		add_filter( 'uncode_builder_abilities_param_kinds', array( __CLASS__, 'add_param_kinds' ) );
 		add_filter( 'uncode_builder_abilities_normalized_param', array( __CLASS__, 'enrich_param' ), 10, 4 );
 		add_filter( 'uncode_builder_abilities_generate_id', array( __CLASS__, 'generate_shortcode_id' ), 10, 3 );

@@ -43,8 +43,12 @@ foreach (
 		'class-layout-operations.php',
 		'class-layout-preview.php',
 		'class-element-advisor.php',
+		'class-uncode-page-options.php',
+		'class-theme-options.php',
+		'class-uncode-theme-options.php',
 		'abilities/class-ability.php',
 		'abilities/class-find-elements.php',
+		'abilities/class-get-theme-options.php',
 		'class-uncode-integration.php',
 	) as $file
 ) {

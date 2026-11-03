@@ -22,6 +22,7 @@ WordPress plugin that exposes the WPBakery Page Builder (and the Uncode theme on
 | `uncode-builder/get-template` | read | One template as a layout tree, to inspect it before inserting. |
 | `uncode-builder/render-preview` | read | Renders an item or one element the way the site does and returns a readable outline (headings, texts, links, images), issues (heading jumps, empty links, images without alt), unrendered shortcodes and a preview URL. |
 | `uncode-builder/get-page-options` | read | Per-page theme settings outside the layout (with Uncode: header, menu, width, content and footer blocks, sidebar, scroll): index by section, stored values and definitions. Never the global theme options. Only when the theme provides them. |
+| `uncode-builder/get-theme-options` | read | Global theme options (with Uncode: the Theme Options panel), read-only, to explain why a page looks or behaves as it does: sections, or the options of one section, by name, by search or only those changed from the defaults, each with its value, label, default and whether it `applies` given the options it depends on. Secret-looking values (API keys, tokens, licences) are redacted. Needs `edit_theme_options`. |
 | `uncode-builder-edit/insert-elements` | edit | Insert elements with their children. |
 | `uncode-builder-edit/insert-template` | edit | Insert a template as designed, with fresh unique ids; then adapt it with `update-element`. |
 | `uncode-builder-edit/update-page-options` | edit | Change per-page settings, validated by kind (choices, toggles, measurements, palette colours, backgrounds); `null` inherits the theme default again. Kept in the snapshot, so `restore-snapshot` undoes it. Not available on autosave copies, which cannot hold settings. |
@@ -74,6 +75,8 @@ Reads and edits use separate namespaces, so a transport with per-namespace scope
 | `uncode_builder_abilities_catalog_capability` | Capability for the catalogue abilities (default `edit_posts`). |
 | `uncode_builder_abilities_show_in_rest` | Expose an ability in the core REST API. |
 | `uncode_builder_abilities_page_options_available`, `uncode_builder_abilities_page_options` | Provide per-page settings for another theme (normalized fields: name, label, section, kind, options, default, visible_when). |
+| `uncode_builder_abilities_theme_options_available`, `uncode_builder_abilities_theme_options`, `uncode_builder_abilities_theme_option_values` | Provide global theme options for another theme (fields shaped like page options, plus `group`; values by option name). |
+| `uncode_builder_abilities_theme_option_is_secret`, `uncode_builder_abilities_theme_options_capability` | Redact more options in get-theme-options, or change who can read them (default `edit_theme_options`). |
 | `uncode_builder_abilities_draft_copy_strategy` | `autosave` (native, default) or `rewrite_and_republish` (Yoast Duplicate Post) for create-draft-copy. |
 
 ## Development
@@ -85,7 +88,7 @@ composer lint   # WordPress coding standards and PHP 7.4+ compatibility
 ```
 
 - `tests/unit/` covers the logic that does not need a site: escaping and decoding, value validation and security rules, the shortcode parser and the element composer, against a small WPBakery map fixture.
-- `tests/integration/` holds WP-CLI suites (`wp eval-file tests/integration/write-test.php`, and `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `search-test.php`, `settings-test.php`) and Python MCP probes, run against a real WPBakery / Uncode site. They work on the empty draft page given in `UBA_TEST_PAGE_ID` (`UBA_TEST_PAGE_ID=123 wp eval-file …`) and refuse to run on anything else; the MCP probes also read the endpoint from `UBA_MCP_ENDPOINT`. Never point them at published content.
+- `tests/integration/` holds WP-CLI suites (`wp eval-file tests/integration/write-test.php`, and `schema-test.php`, `policy-test.php`, `template-test.php`, `draft-copy-test.php`, `security-test.php`, `page-options-test.php`, `theme-options-test.php`, `search-test.php`, `settings-test.php`) and Python MCP probes, run against a real WPBakery / Uncode site. They work on the empty draft page given in `UBA_TEST_PAGE_ID` (`UBA_TEST_PAGE_ID=123 wp eval-file …`) and refuse to run on anything else; the MCP probes also read the endpoint from `UBA_MCP_ENDPOINT`. Never point them at published content.
 - GitHub Actions lints every file on PHP 7.4–8.4, runs PHPCS and the unit tests, and builds the release ZIP (without development files) when a `v*` tag is pushed.
 - Translations live in `languages/`. Agent-facing ability descriptions stay in English; the interface is translated (Spanish included).
 
