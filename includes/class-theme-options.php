@@ -2,9 +2,13 @@
 
 namespace Uncode_Builder_Abilities;
 
+use WP_Post;
+
 defined( 'ABSPATH' ) || exit;
 
 final class Theme_Options {
+
+	const POST_KINDS = array( 'post', 'media' );
 
 	const SECRET_PATTERN = '/(^|_)(api|apikey|key|token|secret|password|license|licence|purchase)(_|$)/i';
 
@@ -155,15 +159,27 @@ final class Theme_Options {
 		return (bool) apply_filters( 'uncode_builder_abilities_theme_option_is_secret', 1 === preg_match( self::SECRET_PATTERN, $field['name'] ), $field );
 	}
 
+	private static function choice_label( array $options, $value ): ?string {
+		return is_scalar( $value ) ? array_column( $options, 'label', 'value' )[ (string) $value ] ?? null : null;
+	}
+
+	private static function post_title( array $field, $value ): ?string {
+		if ( ! in_array( $field['kind'], self::POST_KINDS, true ) || ! is_numeric( $value ) || (int) $value <= 0 ) {
+			return null;
+		}
+
+		$post = get_post( (int) $value );
+
+		return $post instanceof WP_Post ? Param_Normalizer::plain_text_or( $post->post_title, sprintf( '#%d', $post->ID ) ) : null;
+	}
+
 	private static function value_details( array $field, $value ): array {
 		$details = array();
 		$options = $field['options'] ?? array();
 
-		if ( is_scalar( $value ) && array() !== $options ) {
-			$label = array_column( $options, 'label', 'value' )[ (string) $value ] ?? null;
-			if ( null !== $label ) {
-				$details['value_label'] = $label;
-			}
+		$label = apply_filters( 'uncode_builder_abilities_theme_option_value_label', self::choice_label( $options, $value ) ?? self::post_title( $field, $value ), $field, $value );
+		if ( null !== $label && '' !== $label ) {
+			$details['value_label'] = (string) $label;
 		}
 
 		if ( is_string( $value ) && mb_strlen( $value ) > self::MAX_TEXT_LENGTH ) {

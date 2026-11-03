@@ -8,6 +8,7 @@ use Uncode_Builder_Abilities\Abilities\Get_Theme_Options;
 use Uncode_Builder_Abilities\Theme_Options;
 use Uncode_Builder_Abilities\Uncode_Theme_Options;
 use WP_Error;
+use WP_Post;
 
 final class ThemeOptionsTest extends Test_Case {
 
@@ -36,7 +37,7 @@ final class ThemeOptionsTest extends Test_Case {
 			),
 			array(
 				'id'      => '_uncode_headers',
-				'label'   => 'Header type',
+				'label'   => '',
 				'type'    => 'radio-image',
 				'section' => 'header_section',
 				'std'     => 'hmenu-right',
@@ -76,6 +77,12 @@ final class ThemeOptionsTest extends Test_Case {
 				'section' => 'main_section',
 			),
 			array(
+				'id'      => '_uncode_footer_block',
+				'label'   => 'Content Block',
+				'type'    => 'custom-post-type-select',
+				'section' => 'main_section',
+			),
+			array(
 				'id'      => '_uncode_button_hover',
 				'label'   => 'Button hover effect',
 				'type'    => 'select',
@@ -104,6 +111,13 @@ final class ThemeOptionsTest extends Test_Case {
 				'type'    => 'css',
 				'section' => 'customize_section',
 			),
+			array(
+				'id'      => '_uncode_accent_color',
+				'label'   => 'Accent color',
+				'type'    => 'uncode_color',
+				'section' => 'customize_section',
+				'std'     => 'color-gyho',
+			),
 		),
 	);
 
@@ -119,6 +133,20 @@ final class ThemeOptionsTest extends Test_Case {
 			'_uncode_button_hover' => 'full-colored',
 			'_uncode_gmaps_api'    => 'AIza-not-for-agents',
 			'_uncode_custom_css'   => str_repeat( 'a', Theme_Options::MAX_TEXT_LENGTH + 10 ),
+			'_uncode_footer_block' => '168',
+			'_uncode_accent_color' => 'accent',
+			Uncode_Theme_Options::PALETTE_OPTION => array(
+				array(
+					'title'                          => 'Accent',
+					'_uncode_custom_color_unique_id' => 'accent',
+					'_uncode_custom_color'           => '#445fd5',
+				),
+				array(
+					'title'                          => 'Light 2 #eaeaea',
+					'_uncode_custom_color_unique_id' => 'color-gyho',
+					'_uncode_custom_color'           => '#eaeaea',
+				),
+			),
 		);
 
 		Functions\when( 'get_option' )->alias(
@@ -129,6 +157,8 @@ final class ThemeOptionsTest extends Test_Case {
 		);
 		Filters\expectApplied( 'uncode_builder_abilities_theme_options' )->zeroOrMoreTimes()->andReturnUsing( array( Uncode_Theme_Options::class, 'definition' ) );
 		Filters\expectApplied( 'uncode_builder_abilities_theme_option_values' )->zeroOrMoreTimes()->andReturnUsing( array( Uncode_Theme_Options::class, 'values' ) );
+		Filters\expectApplied( 'uncode_builder_abilities_theme_option_value_label' )->zeroOrMoreTimes()->andReturnUsing( array( Uncode_Theme_Options::class, 'value_label' ) );
+		Functions\when( 'get_post' )->alias( static fn( $id ) => 168 === (int) $id ? new WP_Post( (object) array( 'ID' => 168, 'post_title' => 'Site footer' ) ) : null );
 	}
 
 	private function described( Theme_Options $options, string $name ): array {
@@ -148,18 +178,19 @@ final class ThemeOptionsTest extends Test_Case {
 				array(
 					'name'   => 'Layout',
 					'group'  => 'General',
-					'fields' => 1,
+					'fields' => 2,
 				),
 				array(
 					'name'   => 'Customize',
 					'group'  => 'Visual',
-					'fields' => 3,
+					'fields' => 4,
 				),
 			),
 			$options->sections()
 		);
 		$this->assertNull( $options->field( '_header_title' ) );
 		$this->assertSame( 'select', $options->field( '_uncode_headers' )['kind'] );
+		$this->assertSame( 'Headers', $options->field( '_uncode_headers' )['label'], 'Options without a label are named after their id.' );
 		$this->assertSame( 'code', $options->field( '_uncode_custom_css' )['kind'] );
 	}
 
@@ -170,6 +201,10 @@ final class ThemeOptionsTest extends Test_Case {
 		$this->assertSame( 'full-colored', $hover['value'] );
 		$this->assertSame( 'Flat', $hover['value_label'] );
 		$this->assertFalse( $hover['is_default'] );
+
+		$this->assertSame( 'Accent (#445fd5)', $this->described( $options, '_uncode_accent_color' )['value_label'] );
+		$this->assertSame( 'Light 2 #eaeaea', Uncode_Theme_Options::value_label( null, array( 'kind' => 'background' ), array( 'background-color' => 'color-gyho' ) ) );
+		$this->assertSame( 'Site footer', $this->described( $options, '_uncode_footer_block' )['value_label'] );
 
 		$this->assertFalse( $this->described( $options, '_uncode_menu_sticky' )['applies'] );
 		$this->assertFalse( $this->described( $options, '_uncode_menu_shrink' )['applies'], 'Its controller does not apply either.' );
@@ -201,7 +236,7 @@ final class ThemeOptionsTest extends Test_Case {
 			)
 		);
 		$this->assertSame( array( '_uncode_button_hover', '_uncode_gmaps_api' ), array_column( $changed['fields'], 'name' ) );
-		$this->assertSame( 3, $changed['total'] );
+		$this->assertSame( 4, $changed['total'] );
 		$this->assertTrue( $changed['truncated'] );
 
 		$named = $ability->execute( array( 'fields' => array( '_uncode_main_width', '_nope' ) ) );

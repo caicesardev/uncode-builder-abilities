@@ -4,7 +4,7 @@ Tags: wpbakery, uncode, page builder, ai, mcp
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.12.0
+Stable tag: 0.12.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,10 @@ Not in the default drafts-only mode. A person applies draft copies by restoring 
 No. It keeps its own snapshots (one per item by default, configurable) for `restore-snapshot`.
 
 == Changelog ==
+
+= 0.12.1 =
+* get-theme-options names what IDs point to: the title of content blocks, pages and media, and the name of palette colours (also inside backgrounds), in `value_label`.
+* Theme options without a label are named after their id.
 
 = 0.12.0 =
 * New get-theme-options ability: reads the global theme options (with Uncode, the Theme Options panel) by section, search or changes from the defaults, with each value's label, default and whether it applies. Read-only, for users who can edit theme options, with secret-looking values redacted.
