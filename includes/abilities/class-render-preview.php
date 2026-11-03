@@ -14,6 +14,10 @@ defined( 'ABSPATH' ) || exit;
 
 final class Render_Preview extends Ability {
 
+	const MAX_HTML_BYTES = 60000;
+
+	const CODE_BLOCKS_PATTERN = '#<(script|style)\b[^>]*>.*?</\1>#is';
+
 	private Shortcode_Parser $parser;
 
 	private Layout_Preview $preview;
@@ -64,7 +68,17 @@ final class Render_Preview extends Ability {
 				static fn( $value ) => null !== $value
 			),
 			self::how_to_view( $post, $context ),
-			$this->preview->analyze( $html )
+			$this->preview->analyze( $html ),
+			empty( $input['include_html'] ) ? array() : self::markup( $html )
+		);
+	}
+
+	private static function markup( string $html ): array {
+		$html = trim( (string) preg_replace( self::CODE_BLOCKS_PATTERN, '', $html ) );
+
+		return array(
+			'html'           => mb_strcut( $html, 0, self::MAX_HTML_BYTES ),
+			'html_truncated' => strlen( $html ) > self::MAX_HTML_BYTES,
 		);
 	}
 
@@ -88,20 +102,25 @@ final class Render_Preview extends Ability {
 	}
 
 	protected function description(): string {
-		return __( 'You cannot see pages, so use this to check what a layout actually renders after changing it. Renders the item, or only the element at `path` with everything inside it, the way the site does, and returns a readable outline (headings with their level, text excerpts, links with their destination, buttons, images with their alt text), `issues` found (heading levels that jump, empty headings, links without a real destination or text, images without alt), `unrendered_shortcodes` (builder code that did not turn into HTML, usually a wrong tag or nesting) and the `preview_url` a person can open. It does not change anything.', 'uncode-builder-abilities' );
+		return __( 'You cannot see pages, so use this to check what a layout actually renders after changing it. Renders the item, or only the element at `path` with everything inside it, the way the site does, and returns a readable outline (headings with their level, text excerpts, links with their destination, buttons, images with their alt text), `issues` found (heading levels that jump, empty headings, links without a real destination or text, images without alt), `unrendered_shortcodes` (builder code that did not turn into HTML, usually a wrong tag or nesting) and the `preview_url` a person can open. Items hidden on some devices carry `visible_on`, and heading checks run per device, so a mobile-only h1 next to a desktop-only h1 is fine while two h1 on the same device are reported. When you need to confirm the exact markup, such as the classes a setting produced, pass `include_html: true` with a `path`: it adds the rendered `html` (scripts and styles removed, cut at 60 KB), so a draft copy can be checked before a person republishes it, without logging in. It does not change anything.', 'uncode-builder-abilities' );
 	}
 
 	protected function input_schema(): array {
 		return array(
 			'type'                 => 'object',
 			'properties'           => array(
-				'post_id' => array(
+				'post_id'      => array(
 					'type'    => 'integer',
 					'minimum' => 1,
 				),
-				'path'    => array(
+				'path'         => array(
 					'type'        => 'string',
 					'description' => 'Only render the element at this path, such as "3", with everything inside it.',
+				),
+				'include_html' => array(
+					'type'        => 'boolean',
+					'default'     => false,
+					'description' => 'Also return the rendered HTML (best with a `path`).',
 				),
 			),
 			'required'             => array( 'post_id' ),

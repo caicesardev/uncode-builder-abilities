@@ -63,12 +63,31 @@ final class LayoutPreviewTest extends Test_Case {
 
 		$this->assertSame(
 			array(
-				'Heading level jumps from h1 to h3 ("Skipped level").',
 				'Link "Read more" has no real destination (href "#").',
 				'Image "photo.jpg" has no alt attribute.',
+				'Heading level jumps from h1 to h3 ("Skipped level") on desktop, tablet, mobile.',
 			),
 			$analysis['issues']
 		);
 		$this->assertSame( array( 'vc_button' ), $analysis['unrendered_shortcodes'] );
+	}
+
+	public function test_checks_headings_per_device(): void {
+		Filters\expectApplied( 'uncode_builder_abilities_preview_hidden_classes' )->andReturn(
+			array(
+				'desktop' => 'desktop-hidden',
+				'tablet'  => 'tablet-hidden',
+				'mobile'  => 'mobile-hidden',
+			)
+		);
+
+		$analysis = ( new Layout_Preview() )->analyze(
+			'<div class="mobile-hidden"><h1>Home</h1></div><div class="desktop-hidden tablet-hidden"><h1>Home</h1></div>'
+			. '<div class="tablet-hidden"><h1>Second</h1></div>'
+		);
+
+		$this->assertSame( array( 'desktop', 'tablet' ), $analysis['outline'][0]['visible_on'] );
+		$this->assertSame( array( 'mobile' ), $analysis['outline'][1]['visible_on'] );
+		$this->assertSame( array( 'More than one h1 ("Second") on desktop, mobile.' ), $analysis['issues'] );
 	}
 }

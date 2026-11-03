@@ -49,6 +49,8 @@ try {
 	uba_check( 'copia Reescribir y republicar', ! is_wp_error( $rewrite ) && 'rewrite_and_republish' === $rewrite['strategy'] && 'draft' === get_post_status( $rewrite['copy_id'] ), is_wp_error( $rewrite ) ? uba_error( $rewrite ) : array_intersect_key( $rewrite, array_flip( array( 'copy_id', 'strategy', 'reused' ) ) ) );
 	$again = uba_run( 'uncode-builder-edit/create-draft-copy', array( 'post_id' => $page_id ) );
 	uba_check( 'se reutiliza', ! is_wp_error( $again ) && $again['copy_id'] === $rewrite['copy_id'] && $again['reused'] );
+	$rewrite_tree = is_wp_error( $rewrite ) ? $rewrite : uba_run( 'uncode-builder/get-page-tree', array( 'post_id' => $rewrite['copy_id'], 'depth' => 1 ) );
+	uba_check( 'get-page-tree: copy_of en la copia Reescribir y republicar', ! is_wp_error( $rewrite_tree ) && $page_id === $rewrite_tree['post']['copy_of'], is_wp_error( $rewrite_tree ) ? uba_error( $rewrite_tree ) : $rewrite_tree['post'] );
 	delete_post_meta( $page_id, '_dp_has_rewrite_republish_copy' );
 
 	echo "-- Sin Duplicate Post: autoguardado nativo\n";

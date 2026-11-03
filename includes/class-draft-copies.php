@@ -17,6 +17,8 @@ final class Draft_Copies {
 
 	const REWRITE_COPY_META = '_dp_has_rewrite_republish_copy';
 
+	const COPY_ORIGINAL_META = '_dp_original';
+
 	const REWRITE_COPY_STATUS = 'draft';
 
 	const AUTOSAVE_FIELDS = array( 'post_title', 'post_content', 'post_excerpt' );
@@ -40,6 +42,20 @@ final class Draft_Copies {
 
 	public static function is_layout_target( WP_Post $post ): bool {
 		return 'revision' !== $post->post_type || ( self::is_autosave( $post ) && get_current_user_id() === (int) $post->post_author );
+	}
+
+	public static function original_id( WP_Post $post ): ?int {
+		if ( self::is_autosave( $post ) ) {
+			return (int) $post->post_parent;
+		}
+
+		if ( ! get_post_meta( $post->ID, self::REWRITE_COPY_OF_META, true ) ) {
+			return null;
+		}
+
+		$original = (int) get_post_meta( $post->ID, self::COPY_ORIGINAL_META, true );
+
+		return $original > 0 ? $original : null;
 	}
 
 	public static function permission_target_id( WP_Post $post ): int {

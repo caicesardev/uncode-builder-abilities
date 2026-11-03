@@ -4,7 +4,7 @@ Tags: wpbakery, uncode, page builder, ai, mcp
 Requires at least: 6.9
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.10.3
+Stable tag: 0.11.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,14 @@ Not in the default drafts-only mode. A person applies draft copies by restoring 
 No. It keeps its own snapshots (one per item by default, configurable) for `restore-snapshot`.
 
 == Changelog ==
+
+= 0.11.0 =
+* New find-elements ability: search a layout by tag, attributes and text without reading the whole tree.
+* get-page-tree and render-preview report `visible_on` for elements hidden on some devices, and heading checks run per device.
+* get-page-tree can expand embedded content blocks (`expand_blocks`), read-only, with their own `post_id` and `version`.
+* render-preview can return the rendered HTML (`include_html`), so a draft copy can be checked before it is republished.
+* `copy_of` is now set on Rewrite & Republish copies too.
+* The write abilities say in their description whether the site lets them change published items.
 
 = 0.10.3 =
 * Edits return `advice` about the elements they touched. With Uncode, buttons whose text cannot be read (white text on a light colour) or whose outline is ignored by the theme's button hover are reported.

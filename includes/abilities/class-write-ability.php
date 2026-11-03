@@ -31,6 +31,19 @@ abstract class Write_Ability extends Ability {
 
 	abstract protected function edit( Layout_Document $document, WP_Post $post, array $input );
 
+	public function definition(): array {
+		$definition                 = parent::definition();
+		$definition['description'] .= ' ' . self::policy_note();
+
+		return $definition;
+	}
+
+	private static function policy_note(): string {
+		return Write_Policy::ANY_CONTENT === Write_Policy::current()
+			? 'On this site it can change published items directly; every change keeps a snapshot that restore-snapshot brings back.'
+			: 'On this site it only changes drafts, pending items and draft copies: for a published item, call create-draft-copy first and edit the copy.';
+	}
+
 	public function has_permission( $input = null ): bool {
 		$post = get_post( (int) ( self::input_array( $input )['post_id'] ?? 0 ) );
 		if ( ! $post instanceof WP_Post || ! Draft_Copies::is_layout_target( $post ) || ! current_user_can( 'edit_post', Draft_Copies::permission_target_id( $post ) ) ) {
@@ -245,7 +258,7 @@ abstract class Write_Ability extends Ability {
 				'generated_ids' => $edit['generated_ids'] ?? array(),
 				'snippet'       => $edit['snippet'] ?? null,
 				'warnings'      => $edit['warnings'] ?? array(),
-				'advice'        => Element_Advisor::advice_for( $focused ),
+				'advice'        => Element_Advisor::advice_for( $after, $focused ),
 			),
 			static fn( $value ) => false === $value || ( null !== $value && array() !== $value )
 		);
